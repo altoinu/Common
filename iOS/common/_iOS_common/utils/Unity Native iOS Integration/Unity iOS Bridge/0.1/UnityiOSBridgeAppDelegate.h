@@ -33,7 +33,7 @@
  
  
  UnityAppController.h
- 
+ * Add following code to @interface UnityAppController
  // Custom elements for Unity iOS Bridge **************************************
  
  // Get reference to Unity view controller
@@ -48,7 +48,7 @@
  
  
  UnityAppController.mm
- 
+ * Add following code to @implementation UnityAppController
  // Custom elements for Unity iOS Bridge **************************************
  
  - (UIViewController *)unityViewController
