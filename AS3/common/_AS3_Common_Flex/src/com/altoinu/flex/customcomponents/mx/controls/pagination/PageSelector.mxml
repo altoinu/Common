@@ -1,0 +1,753 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+/**
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this file,
+You can obtain one at http://mozilla.org/MPL/2.0/.
+
+Copyright (c) 2014 Kaoru Kawashima @altoinu http://altoinu.com
+
+Pagination component, MX version.
+
+@author Kaoru Kawashima
+
+-->
+<mx:Box
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:pagination="com.altoinu.flex.customcomponents.mx.controls.pagination.*">
+	
+	<mx:Metadata>
+		
+		//--------------------------------------
+		//  Events
+		//--------------------------------------
+		
+		/**
+		 *  Dispatched when page is selected through either user interaction or through code by setting
+		 * property selectedPageLabelNumber.
+		 *
+		 *  @eventType com.altoinu.flex.customcomponents.events.PageSelectorEvent.PAGE_SELECTED
+		 */
+		[Event(name="pageSelected", type="com.altoinu.flex.customcomponents.events.PageSelectorEvent")]
+		
+		/**
+		 *  Dispatched when page is selected through user interaction. Unlike pageSelected event, this event
+		 * is not dispatched through simply setting property selectedPageLabelNumber.
+		 *
+		 *  @eventType com.altoinu.flex.customcomponents.events.PageSelectorEvent.PAGE_SELECTED_CLICK
+		 */
+		[Event(name="pageSelectedClick", type="com.altoinu.flex.customcomponents.events.PageSelectorEvent")]
+		
+		//--------------------------------------
+		//  Styles
+		//--------------------------------------
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for background of the page numbers. You can
+		 * use styles defined for mx.containers.Box.
+		 */
+		[Style(name="pageNumberBackgroundStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for page link that is not selected.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="upLinkStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for page link that is selected.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="selectedLinkStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for ellipsis (...).
+		 * If this is not specified, then selectedLinkStylename is used.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="ellipsisStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for previous link that is not selected.
+		 * If this is not specified, then upLinkStylename is used.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="previousLinkUpStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for previous link that is selected.
+		 * If this is not specified, then selectedLinkStyleName is used.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="previousLinkSelectedStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for next link that is not selected.
+		 * If this is not specified, then upLinkStylename is used.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="nextLinkUpStylename", type="String", inherit="no")]
+		
+		/**
+		 * Name of CSS style declaration that specifies styles for next link that is selected.
+		 * If this is not specified, then selectedLinkStyleName is used.
+		 * You can use styles defined for mx.controls.Label and mx.containers.Box.
+		 */
+		[Style(name="nextLinkSelectedStylename", type="String", inherit="no")]
+		
+		/**
+		 * Space between previous link and 1st page, and last page and next link.
+		 * 
+		 * @default 0
+		 */
+		[Style(name="prevnextLinkSpacing", type="Number", format="Length", inherit="no")]
+		
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.altoinu.flex.customcomponents.events.PageSelectorEvent;
+			import mx.controls.Label;
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Constants
+			//
+			//--------------------------------------------------------------------------
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify pageNumberBackgroundStylename.
+			 */
+			private const pageNumberBackgroundStylenameProp:String = "pageNumberBackgroundStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify upLinkStylename.
+			 */
+			private const upLinkStylenameProp:String = "upLinkStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify selectedLinkStylename.
+			 */
+			private const selectedLinkStylenameProp:String = "selectedLinkStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify ellipsisStylename.
+			 */
+			private const ellipsisStylenameProp:String = "ellipsisStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify previousLinkUpStylename.
+			 */
+			private const previousLinkUpStylenameProp:String = "previousLinkUpStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify previousLinkSelectedStylename.
+			 */
+			private const previousLinkSelectedStylenameProp:String = "previousLinkSelectedStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify nextLinkUpStylename.
+			 */
+			private const nextLinkUpStylenameProp:String = "nextLinkUpStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify nextLinkSelectedStylename.
+			 */
+			private const nextLinkSelectedStylenameProp:String = "nextLinkSelectedStylename";
+			
+			/**
+			 *  @private
+			 *  Name of style used to specify prevnextLinkSpacing.
+			 */
+			private const prevnextLinkSpacingProp:String = "prevnextLinkSpacing";
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Variables
+			//
+			//--------------------------------------------------------------------------
+			
+			/**
+			 * Currently selected page link.
+			 */
+			private var _selectedLinkObj:PageSelectorLabel;
+			
+			//--------------------------------------
+			//  Properties used for label styles
+			//--------------------------------------
+			
+			[Bindable]
+			/**
+			 * Box style for page number background.
+			 */
+			private var _pageNumberBackgroundStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for page link not selected.
+			 */
+			private var _upLinkStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for page link selected.
+			 */
+			private var _selectedLinkStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for ellipsis.
+			 */
+			private var _ellipsisStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for page previous link not selected.
+			 */
+			private var _previousLinkUpStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for page previous link selected.
+			 */
+			private var _previousLinkSelectedStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for page next link not selected.
+			 */
+			private var _nextLinkUpStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Box style for page next link selected.
+			 */
+			private var _nextLinkSelectedStylename:String = "";
+			
+			[Bindable]
+			/**
+			 * Space between previous link and 1st page, and last page and next link.
+			 */
+			private var _prevnextLinkSpacing:Number = 0;
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Properties
+			//
+			//--------------------------------------------------------------------------
+			
+			//--------------------------------------
+			//  I had to set up getters and setters
+			//  otherwise these do not show in ASDoc
+			//--------------------------------------
+			
+			//--------------------------------------
+			//  numPages
+			//--------------------------------------
+			
+			private var _numPages:uint = 0;
+			
+			[Bindable(event="numPagesUpdated")]
+			/**
+			 * Total number of pages.
+			 * 
+			 * @default 0
+			 */
+			public function get numPages():uint
+			{
+				
+				return _numPages;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set numPages(value:uint):void
+			{
+				
+				_numPages = value;
+				dispatchEvent(new Event("numPagesUpdated"));
+				
+			}
+			
+			//--------------------------------------
+			//  numPageLinks
+			//--------------------------------------
+			
+			private var _numPageLinks:uint = 10;
+			
+			[Bindable(event="numPageLinksUpdated")]
+			/**
+			 * Number of page links to show between previous and next links.
+			 * 
+			 * @default 10
+			 */
+			public function get numPageLinks():uint
+			{
+				
+				return _numPageLinks;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set numPageLinks(value:uint):void
+			{
+				
+				_numPageLinks = value;
+				dispatchEvent(new Event("numPageLinksUpdated"));
+				
+			}
+			
+			//--------------------------------------
+			//  pageLinkNumLeft
+			//--------------------------------------
+			
+			private var _pageLinkNumLeft:int = -1;
+			
+			[Bindable(event="pageLinkNumLeftUpdated")]
+			/**
+			 * Number of page links to display before first ellipsis on left.
+			 * 
+			 * @default -1
+			 */
+			public function get pageLinkNumLeft():int
+			{
+				
+				return _pageLinkNumLeft;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set pageLinkNumLeft(value:int):void
+			{
+				
+				_pageLinkNumLeft = value;
+				dispatchEvent(new Event("pageLinkNumLeftUpdated"));
+				
+			}
+			
+			//--------------------------------------
+			//  pageLinkNumRight
+			//--------------------------------------
+			
+			private var _pageLinkNumRight:int = -1;
+			
+			[Bindable(event="pageLinkNumRightUpdated")]
+			/**
+			 * Number of page links to display after second ellipsis on right.
+			 * 
+			 * @default -1
+			 */
+			public function get pageLinkNumRight():int
+			{
+				
+				return _pageLinkNumRight;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set pageLinkNumRight(value:int):void
+			{
+				
+				_pageLinkNumRight = value;
+				dispatchEvent(new Event("pageLinkNumRightUpdated"));
+				
+			}
+			
+			//--------------------------------------
+			//  previousLinkLabel
+			//--------------------------------------
+			
+			private var _previousLinkLabel:String = "< Prev";
+			
+			[Bindable(event="previousLinkLabelUpdate")]
+			/**
+			 * Text to display for previous link.
+			 * 
+			 * @default "&lt; Prev"
+			 */
+			public function get previousLinkLabel():String
+			{
+				
+				return _previousLinkLabel;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set previousLinkLabel(value:String):void
+			{
+				
+				_previousLinkLabel = value;
+				dispatchEvent(new Event("previousLinkLabelUpdate"));
+				
+			}
+			
+			//--------------------------------------
+			//  nextLinkLabel
+			//--------------------------------------
+			
+			private var _nextLinkLabel:String = "Next >";
+			
+			[Bindable(event="nextLinkLabelUpdate")]
+			/**
+			 * Text to display for next link.
+			 * 
+			 * @default "Next &gt;"
+			 */
+			public function get nextLinkLabel():String
+			{
+				
+				return _nextLinkLabel;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set nextLinkLabel(value:String):void
+			{
+				
+				_nextLinkLabel = value;
+				dispatchEvent(new Event("nextLinkLabelUpdate"));
+				
+			}
+			
+			//--------------------------------------
+			//  ellipsis
+			//--------------------------------------
+			
+			private var _ellipsis:String = "...";
+			
+			[Bindable(event="ellipsisUpdate")]
+			/**
+			 * Ellipsis, which is the text displayed between non-continuous page numbers as a result of page numbers larger
+			 * than PageSelector can display at once.
+			 * 
+			 * @default "..."
+			 */
+			public function get ellipsis():String
+			{
+				
+				return _ellipsis;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set ellipsis(value:String):void
+			{
+				
+				_ellipsis = value;
+				dispatchEvent(new Event("ellipsisUpdate"));
+				
+			}
+			
+			//--------------------------------------
+			//  selectedPageLabelNumber
+			//--------------------------------------
+			
+			[Bindable]
+			private var _selectedPageLabelNumber:int = 0;
+			
+			[Bindable("pageSelected")]
+			/**
+			 * Label of the selected page number.
+			 */
+			public function get selectedPageLabelNumber():int
+			{
+				
+				return _selectedPageLabelNumber + 1;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set selectedPageLabelNumber(value:int):void
+			{
+				
+				if (_selectedPageLabelNumber != value - 1)
+				{
+					
+					// Remember selection
+					var previousPageNumber:int = selectedPageLabelNumber;
+					
+					var pagenum:int = value - 1;
+					highlightLink(pagenum);
+					_selectedPageLabelNumber = pagenum;
+					
+					dispatchEvent(new PageSelectorEvent(PageSelectorEvent.PAGE_SELECTED, false, false, previousPageNumber, selectedPageLabelNumber));
+					
+				}
+				
+			}
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Overridden methods
+			//
+			//--------------------------------------------------------------------------
+			
+			override public function styleChanged(styleProp:String):void
+			{
+				
+				var allStyles:Boolean = styleProp == null || styleProp == "styleName";
+				
+				super.styleChanged(styleProp);
+				
+				if (allStyles ||
+					(styleProp == pageNumberBackgroundStylenameProp) ||
+					(styleProp == upLinkStylenameProp) ||
+					(styleProp == selectedLinkStylenameProp) ||
+					(styleProp == ellipsisStylenameProp) ||
+					(styleProp == previousLinkUpStylenameProp) ||
+					(styleProp == previousLinkSelectedStylenameProp) ||
+					(styleProp == nextLinkUpStylenameProp) ||
+					(styleProp == nextLinkSelectedStylenameProp) ||
+					(styleProp == prevnextLinkSpacingProp))
+				{
+					
+					_pageNumberBackgroundStylename = getStyle(pageNumberBackgroundStylenameProp);
+					_upLinkStylename = getStyle(upLinkStylenameProp);
+					_selectedLinkStylename = getStyle(selectedLinkStylenameProp);
+					_ellipsisStylename = getStyle(ellipsisStylenameProp);
+					_previousLinkUpStylename = getStyle(previousLinkUpStylenameProp);
+					_previousLinkSelectedStylename = getStyle(previousLinkSelectedStylenameProp);
+					_nextLinkUpStylename = getStyle(nextLinkUpStylenameProp);
+					_nextLinkSelectedStylename = getStyle(nextLinkSelectedStylenameProp);
+					_prevnextLinkSpacing = getStyle(prevnextLinkSpacingProp);
+					
+				}
+				
+			}
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Methods
+			//
+			//--------------------------------------------------------------------------
+			
+			private function highlightLink(linkNumber:int):void
+			{
+				
+				if (_selectedLinkObj != null)
+					_selectedLinkObj.selected = false; // Deselect previously selected link
+				
+				// Is there corresponding link?
+				var link:PageSelectorLabel = getPageLink(linkNumber);
+				if (link != null)
+				{
+					
+					// Then select it
+					link.selected = true;
+					_selectedLinkObj = link;
+					
+				}
+				
+			}
+			
+			private function getPageLink(linknumber:int):PageSelectorLabel
+			{
+				
+				if (linknumber < 0)
+				{
+					
+					return null;
+					
+				}
+				else
+				{
+					
+					var numItems:uint = this.numChildren;
+					for (var i:uint = 0; i < numItems; i++)
+					{
+						
+						if ((this.getChildAt(i) is PageSelectorLabel) &&
+							(isFinite(Number(PageSelectorLabel(this.getChildAt(i)).linkLabel))) &&
+							(Number(PageSelectorLabel(this.getChildAt(i)).linkLabel) == (linknumber + 1)))
+						{
+							
+							return PageSelectorLabel(this.getChildAt(i));
+							
+						}
+						
+					}
+					
+				}
+				
+				return null;
+				
+			}
+			
+			private function resetSelectedLabel():void
+			{
+				
+				highlightLink(_selectedPageLabelNumber);
+				
+			}
+			
+			private function getPageLinkBreakPattern(selectedPageNumber:int, numberOfPages:uint, numberOfPageLinks:uint, leftBreakIndex:int, rightBreakIndex:int):Array
+			{
+				
+				var tempPattern:Array = [];
+				var numItemsInMiddle:uint = numberOfPageLinks - (leftBreakIndex + rightBreakIndex);
+				var middleIndex1:int = selectedPageNumber - Math.floor(numItemsInMiddle / 2);
+				var middleIndex2:int = selectedPageNumber + Math.floor(numItemsInMiddle / 2) + 1;
+				
+				if (numItemsInMiddle == (Math.floor(numItemsInMiddle / 2) * 2))
+				{
+					
+					// There are even numbers in the middle between ...s
+					// Subtract one item from middleIndex1
+					middleIndex1++;
+					
+				}
+				
+				if (middleIndex1 <= leftBreakIndex)
+				{
+					
+					middleIndex2 = numberOfPageLinks - rightBreakIndex;
+					middleIndex1 = 0;
+					
+				}
+				else if ((numberOfPages - rightBreakIndex) <= middleIndex2)
+				{
+					
+					middleIndex1 = numberOfPages - (numberOfPageLinks - leftBreakIndex);
+					middleIndex2 = numberOfPages;
+					
+				}
+				
+				for (var i: uint = 0; i < numberOfPages; i++)
+				{
+					
+					if (((0 <= i) && (i < leftBreakIndex)) ||
+						((middleIndex1 <= i) && (i < middleIndex2)) ||
+						((numberOfPages - rightBreakIndex <= i) && (i < numberOfPages)))
+						
+						tempPattern.push(i);
+					
+				}
+				
+				return tempPattern;
+				
+			}
+			
+			private function addDotDotDot(allItems:Array, currentNumber:int):Boolean
+			{
+				
+				if ((allItems == null) || (allItems.length <= 0))
+					return false;
+				
+				var currentNumberIndex:int = allItems.indexOf(currentNumber);
+				
+				if ((currentNumberIndex == -1) || (currentNumberIndex >= allItems.length - 1))
+				{
+					
+					return false;
+					
+				}
+				else
+				{
+					
+					return (allItems[currentNumberIndex + 1] > (currentNumber + 1));
+					
+				}
+				
+			}
+			
+			private function setPageNumberThroughClick(newPageNumber:int):void
+			{
+				
+				if (selectedPageLabelNumber != newPageNumber)
+				{
+					
+					var previousPageNumber:int = selectedPageLabelNumber;
+					selectedPageLabelNumber = newPageNumber;
+					dispatchEvent(new PageSelectorEvent(PageSelectorEvent.PAGE_SELECTED_CLICK, false, false, previousPageNumber, selectedPageLabelNumber));
+					
+				}
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<!-- Previous link -->
+	<pagination:PageSelectorLabel
+		id="previousButton"
+		linkLabel="{previousLinkLabel}"
+		visible="{previousLinkLabel != ''}"
+		includeInLayout="{previousLinkLabel != ''}"
+		upLinkStylename="{(_previousLinkUpStylename != null) &amp;&amp; (_previousLinkUpStylename != '') ? _previousLinkUpStylename : _upLinkStylename}"
+		selectedLinkStylename="{(_previousLinkSelectedStylename != null) &amp;&amp; (_previousLinkSelectedStylename != '') ? _previousLinkSelectedStylename : _selectedLinkStylename}"
+		click="if (selectedPageLabelNumber > 1) setPageNumberThroughClick(selectedPageLabelNumber - 1);"/>
+	
+	<mx:Spacer id="spacer_AfterPrevious"
+		width="{this.direction == 'horizontal' ? _prevnextLinkSpacing : 0}" height="{this.direction == 'vertical' ? _prevnextLinkSpacing : 0}"/>
+	
+	<!-- Background for page numbers -->
+	<mx:Box id="pageLinksBackground"
+		width="{spacer_BeforeNext.x - this.getStyle('horizontalGap') - pageLinksBackground.x}"
+		height="30"
+		styleName="{_pageNumberBackgroundStylename}"
+		includeInLayout="false"/>
+	
+	<!-- Page numbers -->
+	<mx:Repeater id="repeater_PageLinks1"
+		dataProvider="{getPageLinkBreakPattern(_selectedPageLabelNumber, numPages, numPageLinks, pageLinkNumLeft, pageLinkNumRight)}"
+		repeatEnd="resetSelectedLabel();">
+		
+		<pagination:PageSelectorLabel
+			linkLabel="{Number(repeater_PageLinks1.currentItem) + 1}"
+			upLinkStylename="{_upLinkStylename}" selectedLinkStylename="{_selectedLinkStylename}"
+			click="setPageNumberThroughClick(Number(PageSelectorLabel(event.target).linkLabel));"/>
+		
+		<mx:Box
+			horizontalAlign="center" verticalAlign="bottom"
+			clipContent="false"
+			styleName="{(_ellipsisStylename != null) &amp;&amp; (_ellipsisStylename != '') ? _ellipsisStylename : _selectedLinkStylename}"
+			visible="{addDotDotDot(getPageLinkBreakPattern(_selectedPageLabelNumber, numPages, numPageLinks, pageLinkNumLeft, pageLinkNumRight), Number(repeater_PageLinks1.currentItem))}"
+			includeInLayout="{addDotDotDot(getPageLinkBreakPattern(_selectedPageLabelNumber, numPages, numPageLinks, pageLinkNumLeft, pageLinkNumRight), Number(repeater_PageLinks1.currentItem))}">
+			<mx:Label
+				text="{ellipsis}"
+				width="100%"
+				textAlign="center"
+				visible="{addDotDotDot(getPageLinkBreakPattern(_selectedPageLabelNumber, numPages, numPageLinks, pageLinkNumLeft, pageLinkNumRight), Number(repeater_PageLinks1.currentItem))}"
+				includeInLayout="{addDotDotDot(getPageLinkBreakPattern(_selectedPageLabelNumber, numPages, numPageLinks, pageLinkNumLeft, pageLinkNumRight), Number(repeater_PageLinks1.currentItem))}"/>
+		</mx:Box>
+		
+	</mx:Repeater>
+	
+	<mx:Spacer id="spacer_BeforeNext"
+		width="{this.direction == 'horizontal' ? _prevnextLinkSpacing : 0}" height="{this.direction == 'vertical' ? _prevnextLinkSpacing : 0}"/>
+	
+	<!-- Next link -->
+	<pagination:PageSelectorLabel
+		id="nextButton"
+		linkLabel="{nextLinkLabel}"
+		visible="{nextLinkLabel != ''}"
+		includeInLayout="{nextLinkLabel != ''}"
+		upLinkStylename="{(_nextLinkUpStylename != null) &amp;&amp; (_nextLinkUpStylename != '') ? _nextLinkUpStylename : _upLinkStylename}"
+		selectedLinkStylename="{(_nextLinkSelectedStylename != null) &amp;&amp; (_nextLinkSelectedStylename != '') ? _nextLinkSelectedStylename : _selectedLinkStylename}"
+		click="if (selectedPageLabelNumber &lt; numPages) setPageNumberThroughClick(selectedPageLabelNumber + 1);"/>
+	
+</mx:Box>

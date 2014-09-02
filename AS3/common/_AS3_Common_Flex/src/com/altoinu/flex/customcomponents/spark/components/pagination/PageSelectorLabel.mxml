@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this file,
+You can obtain one at http://mozilla.org/MPL/2.0/.
+
+Copyright (c) 2014 Kaoru Kawashima @altoinu http://altoinu.com
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 currentState="{selected ? 'selected' : 'normal'}"
+		 buttonMode="true" useHandCursor="true" mouseChildren="false"
+		 styleName.normal="{upLinkStylename}"
+		 styleName.selected="{selectedLinkStylename}">
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.conversion.TextConverter;
+			
+			[Bindable]
+			public var selected:Boolean = false;
+			
+			[Bindable]
+			public var linkLabel:String;
+			
+			[Bindable]
+			public var upLinkStylename:String = "";
+			
+			[Bindable]
+			public var selectedLinkStylename:String = "";
+			
+			[Bindable]
+			public var normalFilters:Array;
+			
+			[Bindable]
+			public var selectedFilters:Array;
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="selected"/>
+	</s:states>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:RichText textFlow="{TextConverter.importToFlow(linkLabel, TextConverter.TEXT_FIELD_HTML_FORMAT)}"
+				width="100%"
+				textAlign="center"
+				styleName.normal="{upLinkStylename}"
+				styleName.selected="{selectedLinkStylename}"
+				filters="{normalFilters}" filters.selected="{selectedFilters}"/>
+	
+</s:Group>

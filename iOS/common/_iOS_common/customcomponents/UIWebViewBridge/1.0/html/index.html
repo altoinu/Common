@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<!--
+Hmm, I cannot use target-densityDpi=device-dpi...
+It fixes screen pixel scaling but map contents become really small.
+So for now, I am doing kind of hacky way to get around in retailfinder.js, resizeContainer()
+<meta name="viewport" content="width=device-width, target-densityDpi=device-dpi, initial-scale=1, maximum-scale=1; user-scalable=0;"> 
+-->
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1; user-scalable=0;">
+
+<title>Web View Bridge</title>
+
+<link rel="stylesheet" href="retailfinder.css"></link>
+
+<script type="text/javascript" src="jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="WebViewBridge.js"></script>
+
+<script type="text/javascript">
+	var appBridge;
+
+	$(document).ready(function() {
+
+		$("#specialButton").click(function() {
+
+			appBridge.callAppMethod("awesomeFunction", "I love?sushi, &too.", "I also love tempura.");
+			//appBridge.callAppMethod("awesomeFunction", "gyu don", "ten don");
+
+		});
+
+		var bridgeMethods = {
+
+			sayHello: function(text1, text2) {
+
+				alert("I got something from app:\n" + text1 + "\n" + text2);
+
+			},
+
+			giveMeData: function(inputValue, text) {
+
+				var answer = Number(inputValue) + 5;
+
+				// Must return in Array format
+				return [
+					answer,
+					"The answer is... " + answer + ", " + text + "!"
+				];
+
+			}
+
+		};
+
+		var WebViewBridge = window.com.altoinu.javascript.air.utils.WebViewBridge;
+
+		appBridge = new WebViewBridge(bridgeMethods);
+
+	});
+</script>
+
+</head>
+
+<body>
+
+	<div>I like curry rice. This text is in HTML.</div>
+	<br />
+	<input id="specialButton" type="button" value="Let's make call to app" />
+
+</body>
+
+</html>

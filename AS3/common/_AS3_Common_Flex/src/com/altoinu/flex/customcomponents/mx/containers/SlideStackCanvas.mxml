@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this file,
+You can obtain one at http://mozilla.org/MPL/2.0/.
+
+Copyright (c) 2014 Kaoru Kawashima @altoinu http://altoinu.com
+-->
+<mx:Canvas
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	clipContent="true"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="onCreationComplete(event)">
+	
+	<!---
+		
+		Canvas container that displays one component at a time and can
+		switch view with sliding animation.
+		
+	-->
+	
+	<!-- events -->
+	<mx:Metadata>
+		/**
+		 *  Dispatched when sliding is about to start.
+		 *
+		 *  @eventType com.altoinu.flex.customcomponents.events.SlideStackCanvasEvent.ON_SLIDE_START
+		 */
+		[Event(name="onSlideStart", type="com.altoinu.flex.customcomponents.events.SlideStackCanvasEvent")]
+		
+		/**
+		 *  Dispatched when sliding completes.
+		 *
+		 *  @eventType com.altoinu.flex.customcomponents.events.SlideStackCanvasEvent.ON_SLIDE_COMPELTE
+		 */
+		[Event(name="onSlideComplete", type="com.altoinu.flex.customcomponents.events.SlideStackCanvasEvent")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.altoinu.flash.utils.MathUtils;
+			import com.altoinu.flex.customcomponents.events.SlideStackCanvasEvent;
+			
+			import mx.core.UIComponent;
+			import mx.effects.Effect;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Class constants
+			//
+			//--------------------------------------------------------------------------
+			
+			private static const DIRECTION_ERROR:String = " is not a valid direction for ScrollStack.";
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Variables
+			//
+			//--------------------------------------------------------------------------
+			
+			[Bindable]
+			private var _sizeBaseDisplayObject:DisplayObject;
+			
+			[Bindable]
+			private var _currentTransitionEffect:Effect;
+			
+			[Bindable]
+			private var _newContainerWidth:Number = 0;
+			
+			[Bindable]
+			private var _newContainerHeight:Number = 0;
+			
+			[Bindable]
+			private var _hideTargetChild_Width:Number = 0;
+			
+			[Bindable]
+			private var _hideTargetChild_Height:Number = 0;
+			
+			[Bindable]
+			private var _showTargetChild_Width:Number = 0;
+			
+			[Bindable]
+			private var _showTargetChild_Height:Number = 0;
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Properties
+			//
+			//--------------------------------------------------------------------------
+			
+			[Bindable]
+			public var suspendBackgroundProcessing:Boolean = false;
+			
+			[Bindable]
+			/**
+			 * Transition speed.
+			 */
+			public var slideSpeed:Number = 500;
+			
+			[Inspectable(category="General", defaultValue="false")]
+			[Bindable]
+			/**
+			 * Triggers alpha of components transitioning so next one appears while current one disappears.
+			 */
+			public var fadeInOut:Boolean = false;
+			
+			//----------------------------------
+			//  resizeToContent
+			//----------------------------------
+			
+			[Bindable]
+			private var _resizeToContent:Boolean = false;
+			
+			[Inspectable(category="General", defaultValue="false")]
+			[Bindable(event="resizeToContentChanged")]
+			/**
+			 * If set to true, SlideStack width and height is adjusted to the displayed content dynamically when contents
+			 * slide to transition.
+			 */
+			public function get resizeToContent():Boolean
+			{
+				
+				return _resizeToContent;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set resizeToContent(value:Boolean):void
+			{
+				
+				_resizeToContent = value;
+				
+				if (_currentChild != null)
+				{
+					
+					// Resize container to fit to child
+					_sizeBaseDisplayObject = UIComponent(_currentChild);
+					width = _sizeBaseDisplayObject.width;
+					height = _sizeBaseDisplayObject.height;
+					UIComponent(_currentChild).setStyle("horizontalCenter", 0);
+					UIComponent(_currentChild).setStyle("verticalCenter", 0);
+					
+				}
+				
+				dispatchEvent(new Event("resizeToContentChanged"));
+				
+			}
+			
+			//----------------------------------
+			//  isPlaying
+			//----------------------------------
+			
+			[Bindable(event="isPlayingChanged")]
+			/**
+			 * Becomes true when sliding animation starts/ends.
+			 */
+			public function get isPlaying():Boolean
+			{
+				
+				return left.isPlaying || right.isPlaying || up.isPlaying || down.isPlaying;
+				
+			}
+			
+			//----------------------------------
+			//  currentChild
+			//----------------------------------
+			
+			[Bindable(event="selectedIndexChanged")]
+			/**
+			 * @private
+			 */
+			private function get _currentChild():DisplayObject
+			{
+				
+				if ((0 <= _selectedIndex) && (_selectedIndex < numChildren))
+					return getChildAt(_selectedIndex);
+				else
+					return null;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			private function set _currentChild(value:DisplayObject):void
+			{
+				
+				if (_currentChild != value)
+				{
+					
+					if ((value != null) && (value.parent != null) && (value.parent == this))
+					{
+						
+						// Select and show the child
+						_selectedIndex = getChildIndex(value);
+						showChild(UIComponent(value));
+						
+					}
+					else
+					{
+						
+						// Nothing
+						_selectedIndex = -1;
+						
+					}
+					
+					dispatchEvent(new Event("selectedIndexChanged"));
+					
+				}
+				
+			}
+			
+			[Bindable(event="selectedIndexChanged")]
+			/**
+			 * Currently displaying child.
+			 */
+			public function get currentChild():DisplayObject
+			{
+				
+				return _currentChild;
+				
+			}
+			
+			//----------------------------------
+			//  selectedIndex
+			//----------------------------------
+			
+			[Bindable]
+			private var _selectedIndex:int = -1;
+			
+			[Bindable(event="selectedIndexChanged")]
+			/**
+			 * Selected index.
+			 */
+			public function get selectedIndex():int
+			{
+				
+				return _selectedIndex;
+				
+			}
+			
+			/**
+			 * @private
+			 */
+			/*
+			private function set selectedIndex(value:int):void
+			{
+				
+				if (_selectedIndex != value)
+				{
+					
+					_selectedIndex = value;
+					
+					change(getChildAt(value).name, SLIDE_RANDOM);
+					
+					dispatchEvent(new Event("selectedIndexChanged"));
+					
+				}
+				
+			}
+			*/
+			
+			//----------------------------------
+			//  previousChild
+			//----------------------------------
+			
+			[Bindable]
+			private var _hideTargetChild:DisplayObject;
+			
+			/**
+			 * If slide animation is playing, then this would return child that is about to hide.
+			 */
+			public function get previousChild():DisplayObject
+			{
+				
+				return _hideTargetChild;
+				
+			}
+			
+			//----------------------------------
+			//  nextChild
+			//----------------------------------
+			
+			[Bindable]
+			private var _showTargetChild:DisplayObject;
+			
+			/**
+			 * If slide animation is playing, then this would return child that is about to display.
+			 */
+			public function get nextChild():DisplayObject
+			{
+				
+				if (isPlaying)
+					return _showTargetChild;
+				else
+					return null;
+				
+			}
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Methods
+			//
+			//--------------------------------------------------------------------------
+			
+			/**
+			 * Slide the currently displayed component and next one to switch view.
+			 * 
+			 * @param nextComponent Name of the next component to be displayed.
+			 * @param direction to slide component.  It can be one of the following string values:
+			 * SlideStackCanvasDirection.SLIDE_UP, SlideStackCanvasDirection.SLIDE_DOWN, 
+			 * SlideStackCanvasDirection.SLIDE_LEFT, SlideStackCanvasDirection.SLIDE_RIGHT, 
+			 * or SlideStackCanvasDirection.SLIDE_RANDOM.  Default is SlideStackCanvasDirection.SLIDE_RANDOM.
+			 */
+			public function change(nextComponent:String, direction:String = SlideStackCanvasDirection.SLIDE_RANDOM):void
+			{
+				
+				if (!isPlaying && (numChildren > 0))
+				{
+					
+					var nextTargetChild:DisplayObject = getChildByName(nextComponent);
+					if ((nextTargetChild == _currentChild) || (nextTargetChild == null))
+						return;
+					
+					if ((direction != SlideStackCanvasDirection.SLIDE_UP) &&
+						(direction != SlideStackCanvasDirection.SLIDE_DOWN) &&
+						(direction != SlideStackCanvasDirection.SLIDE_LEFT) &&
+						(direction != SlideStackCanvasDirection.SLIDE_RIGHT) &&
+						(direction != SlideStackCanvasDirection.SLIDE_RANDOM))
+					{
+						
+						throw(direction + DIRECTION_ERROR);
+						
+						return;
+						
+					}
+					
+					UIComponent(_currentChild).includeInLayout = false;
+					UIComponent(nextTargetChild).includeInLayout = false;
+					
+					var directions:Array = [SlideStackCanvasDirection.SLIDE_UP, SlideStackCanvasDirection.SLIDE_DOWN, SlideStackCanvasDirection.SLIDE_LEFT, SlideStackCanvasDirection.SLIDE_RIGHT];
+					direction = (direction == SlideStackCanvasDirection.SLIDE_RANDOM) ? directions[MathUtils.randRange(0, directions.length - 1)] : direction;
+					
+					// Set target values
+					_hideTargetChild = _currentChild;
+					_showTargetChild = nextTargetChild;
+					
+					_hideTargetChild_Width = _hideTargetChild.width;
+					_hideTargetChild_Height = _hideTargetChild.height;
+					
+					_showTargetChild_Width = _showTargetChild.width;
+					_showTargetChild_Height = _showTargetChild.height;
+					
+					if (_resizeToContent)
+					{
+						
+						// Resize container to fit to child
+						_newContainerWidth = _showTargetChild.width;
+						_newContainerHeight = _showTargetChild.height;
+						
+					}
+					else
+					{
+						
+						_newContainerWidth = _sizeBaseDisplayObject.width;
+						_newContainerHeight = _sizeBaseDisplayObject.height;
+						
+					}
+					
+					// Move
+					_currentTransitionEffect = this[direction];
+					_currentTransitionEffect.play();
+					
+				}
+				
+			}
+			
+			private function showChild(targetChild:UIComponent):void
+			{
+				
+				targetChild.x = 0;
+				targetChild.y = 0;
+				targetChild.visible = true;
+				targetChild.includeInLayout = false;
+				
+			}
+			
+			private function hideChild(targetChild:UIComponent):void
+			{
+				
+				targetChild.x = 0;
+				targetChild.y = 0;
+				targetChild.visible = false;
+				targetChild.includeInLayout = false;
+				
+			}
+			
+			//--------------------------------------------------------------------------
+			//
+			//  Event handlers
+			//
+			//--------------------------------------------------------------------------
+			
+			/**
+			 * Creation Complete handler.
+			 * 
+			 */
+			private function onCreationComplete(event:FlexEvent):void
+			{
+				
+				for each (var child:UIComponent in getChildren())
+				{
+					
+					hideChild(child);
+					
+				}
+				
+				if (numChildren > 0)
+				{
+					
+					// There are children, show child that is selected
+					
+					if (_selectedIndex < 0)
+						_selectedIndex = 0; // Select 0 by default
+					
+					showChild(UIComponent(getChildAt(_selectedIndex)));
+					_sizeBaseDisplayObject = getChildAt(_selectedIndex);
+					
+					// Resize container to fit to child
+					width = _currentChild.width;
+					height = _currentChild.height;
+					
+					dispatchEvent(new Event("selectedIndexChanged"));
+					
+				}
+				
+			}
+			
+			/**
+			 * Slide effect start handler.
+			 */
+			private function onSlideEffectStart(event:Event):void
+			{
+				
+				UIComponent(_hideTargetChild).x = 0;
+				UIComponent(_hideTargetChild).y = 0;
+				UIComponent(_hideTargetChild).includeInLayout = false;
+				
+				_currentChild = UIComponent(_showTargetChild);
+				
+				dispatchEvent(new Event("isPlayingChanged"));
+				dispatchEvent(new SlideStackCanvasEvent(SlideStackCanvasEvent.ON_SLIDE_START, false, false, _hideTargetChild, _showTargetChild));
+				
+			}
+			
+			/**
+			 * Slide effect end handler.
+			 */
+			private function onSlideEffectComplete(event:EffectEvent = null):void
+			{
+				
+				hideChild(UIComponent(_hideTargetChild));
+				
+				dispatchEvent(new Event("isPlayingChanged"));
+				dispatchEvent(new SlideStackCanvasEvent(SlideStackCanvasEvent.ON_SLIDE_COMPLETE, false, false, _hideTargetChild, _showTargetChild));
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<!-- effects -->
+	<mx:Parallel id="left"
+		duration="{slideSpeed}" suspendBackgroundProcessing="{suspendBackgroundProcessing}"
+		effectStart="onSlideEffectStart(event)"
+		effectEnd="onSlideEffectComplete(event)">
+		<mx:AnimateProperty
+			target="{this}"
+			property="width"
+			fromValue="{width}" toValue="{_newContainerWidth}"/>
+		<mx:AnimateProperty
+			target="{this}"
+			property="height"
+			fromValue="{height}" toValue="{_newContainerHeight}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? -1 * ((_hideTargetChild_Width / 2) + (_showTargetChild_Width / 2)) :
+										 -1 * ((_hideTargetChild_Width / 2) + (_newContainerWidth / 2))}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="alpha" fromValue="1" toValue="{fadeInOut ? 0 : 1}" />
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? (_showTargetChild_Width / 2) + (_hideTargetChild_Width / 2) :
+										   (_showTargetChild_Width / 2) + _hideTargetChild_Width - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_showTargetChild_Height / 2) - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="alpha" fromValue="{fadeInOut ? 0 : 1}" toValue="1" />
+	</mx:Parallel>
+	
+	<mx:Parallel id="right"
+		duration="{slideSpeed}" suspendBackgroundProcessing="{suspendBackgroundProcessing}"
+		effectStart="onSlideEffectStart(event)"
+		effectEnd="onSlideEffectComplete(event)">
+		<mx:AnimateProperty
+			target="{this}"
+			property="width"
+			fromValue="{width}" toValue="{_newContainerWidth}"/>
+		<mx:AnimateProperty
+			target="{this}"
+			property="height"
+			fromValue="{height}" toValue="{_newContainerHeight}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? (_hideTargetChild_Width / 2) + (_showTargetChild_Width / 2) :
+										 _showTargetChild_Width + (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="alpha" fromValue="1" toValue="{fadeInOut ? 0 : 1}" />
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? -1 * ((_showTargetChild_Width / 2) + (_hideTargetChild_Width / 2)) :
+										   -1 * ((_showTargetChild_Width / 2) + (_newContainerWidth / 2))}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_showTargetChild_Height / 2) - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="alpha" fromValue="{fadeInOut ? 0 : 1}" toValue="1" />
+	</mx:Parallel>
+	
+	<mx:Parallel id="up"
+		duration="{slideSpeed}" suspendBackgroundProcessing="{suspendBackgroundProcessing}"
+		effectStart="onSlideEffectStart(event)"
+		effectEnd="onSlideEffectComplete(event)">
+		<mx:AnimateProperty
+			target="{this}"
+			property="width"
+			fromValue="{width}" toValue="{_newContainerWidth}"/>
+		<mx:AnimateProperty
+			target="{this}"
+			property="height"
+			fromValue="{height}" toValue="{_newContainerHeight}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? -1 * ((_hideTargetChild_Height / 2) + (_showTargetChild_Height / 2)) :
+										 -1 * ((_hideTargetChild_Height / 2) + (_newContainerHeight / 2))}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="alpha" fromValue="1" toValue="{fadeInOut ? 0 : 1}" />
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_showTargetChild_Width / 2) - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? (_showTargetChild_Height / 2) + (_hideTargetChild_Height / 2) :
+										   (_showTargetChild_Height / 2) + _hideTargetChild_Height - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="alpha" fromValue="{fadeInOut ? 0 : 1}" toValue="1" />
+	</mx:Parallel>
+	
+	<mx:Parallel id="down"
+		duration="{slideSpeed}" suspendBackgroundProcessing="{suspendBackgroundProcessing}"
+		effectStart="onSlideEffectStart(event)"
+		effectEnd="onSlideEffectComplete(event)">
+		<mx:AnimateProperty
+			target="{this}"
+			property="width"
+			fromValue="{width}" toValue="{_newContainerWidth}"/>
+		<mx:AnimateProperty
+			target="{this}"
+			property="height"
+			fromValue="{height}" toValue="{_newContainerHeight}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_hideTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"
+			toValue="{_resizeToContent ? (_hideTargetChild_Height / 2) + (_showTargetChild_Height / 2) :
+										 _showTargetChild_Height + (_hideTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_hideTargetChild}"
+			property="alpha" fromValue="1" toValue="{fadeInOut ? 0 : 1}" />
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="horizontalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? 0 :
+										   (_showTargetChild_Width / 2) - (_newContainerWidth / 2)}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Width / 2) - (_newContainerWidth / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="verticalCenter" isStyle="true"
+			fromValue="{_resizeToContent ? -1 * ((_showTargetChild_Height / 2) + (_hideTargetChild_Height / 2)) :
+										   -1 * ((_showTargetChild_Height / 2) + (_newContainerHeight / 2))}"
+			toValue="{_resizeToContent ? 0 :
+										 (_showTargetChild_Height / 2) - (_newContainerHeight / 2)}"/>
+		<mx:AnimateProperty
+			target="{_showTargetChild}"
+			property="alpha" fromValue="{fadeInOut ? 0 : 1}" toValue="1" />
+	</mx:Parallel>
+	
+</mx:Canvas>
