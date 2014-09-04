@@ -1,0 +1,3 @@
+Unity iOS Bridge
+Version 0.2
+Supported Unity version: 4.5.3
