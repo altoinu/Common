@@ -10,7 +10,9 @@
 class Tesseract_FileUpload
 {
 
-	public $allowed_types = "";
+	public $uploadError = "";
+	
+	public $allowed_types = array('png', 'jpg', 'jpeg');
 	public $file_temp = "";
 	public $file_name = "";
 	public $file_type = "";
@@ -38,18 +40,6 @@ class Tesseract_FileUpload
 	}
 
 	/**
-	 * Set Upload Path
-	 *
-	 * @param	string
-	 * @return	void
-	 */
-	public function set_upload_path($path)
-	{
-		// Make sure it has a trailing slash
-		$this->upload_path = rtrim($path, '/').'/';
-	}
-	
-	/**
 	 * Set Allowed File Types
 	 *
 	 * @param	string
@@ -64,7 +54,19 @@ class Tesseract_FileUpload
 		}
 		$this->allowed_types = explode('|', $types);
 	}
-
+	
+	/**
+	 * Set Upload Path
+	 *
+	 * @param	string
+	 * @return	void
+	 */
+	public function set_upload_path($path)
+	{
+		// Make sure it has a trailing slash
+		$this->upload_path = rtrim($path, '/').'/';
+	}
+	
 	/**
 	 * Set Image Properties
 	 *
@@ -141,7 +143,7 @@ class Tesseract_FileUpload
 		if (count($this->allowed_types) == 0 OR ! is_array($this->allowed_types))
 		{
 			// TODO: log -
-			$uploadError = "upload_no_file_types";
+			$this->uploadError = "upload_no_file_types";
 			return FALSE;
 		}
 	
@@ -191,7 +193,7 @@ class Tesseract_FileUpload
 		if ($this->upload_path == '')
 		{
 			// TODO: log - no upload path
-			$uploadError = "upload_no_filepath";
+			$this->uploadError = "upload_no_filepath";
 			return FALSE;
 		}
 	
@@ -203,14 +205,14 @@ class Tesseract_FileUpload
 		if ( ! @is_dir($this->upload_path))
 		{
 			// TODO: log - no upload path
-			$uploadError = "upload_no_filepath";
+			$this->uploadError = "upload_no_filepath";
 			return FALSE;
 		}
 	
 		if ( ! is_really_writable($this->upload_path))
 		{
 			// TODO: log - cannot write
-			$uploadError = "upload_not_writable";
+			$this->uploadError = "upload_not_writable";
 			return FALSE;
 		}
 	
@@ -392,7 +394,7 @@ class Tesseract_FileUpload
 		{
 			
 			// TODO: log - no file
-			$uploadError = "upload_no_file_selected";
+			$this->uploadError = "upload_no_file_selected";
 			return FALSE;
 			
 		}
@@ -414,28 +416,28 @@ class Tesseract_FileUpload
 			switch($error)
 			{
 				case 1:	// UPLOAD_ERR_INI_SIZE
-					$uploadError = "upload_file_exceeds_limit";
+					$this->uploadError = "upload_file_exceeds_limit";
 					break;
 				case 2: // UPLOAD_ERR_FORM_SIZE
-					$uploadError = "upload_file_exceeds_form_limit";
+					$this->uploadError = "upload_file_exceeds_form_limit";
 					break;
 				case 3: // UPLOAD_ERR_PARTIAL
-					$uploadError = "upload_file_partial";
+					$this->uploadError = "upload_file_partial";
 					break;
 				case 4: // UPLOAD_ERR_NO_FILE
-					$uploadError = "upload_no_file_selected";
+					$this->uploadError = "upload_no_file_selected";
 					break;
 				case 6: // UPLOAD_ERR_NO_TMP_DIR
-					$uploadError = "upload_no_temp_directory";
+					$this->uploadError = "upload_no_temp_directory";
 					break;
 				case 7: // UPLOAD_ERR_CANT_WRITE
-					$uploadError = "upload_unable_to_write_file";
+					$this->uploadError = "upload_unable_to_write_file";
 					break;
 				case 8: // UPLOAD_ERR_EXTENSION
-					$uploadError = "upload_stopped_by_extension";
+					$this->uploadError = "upload_stopped_by_extension";
 					break;
 				default:
-					$uploadError = "upload_no_file_selected";
+					$this->uploadError = "upload_no_file_selected";
 					break;
 			}
 
@@ -455,7 +457,7 @@ class Tesseract_FileUpload
 		if ( ! $this->is_allowed_filetype())
 		{
 			// TODO: log -
-			$uploadError = "upload_invalid_filetype";
+			$this->uploadError = "upload_invalid_filetype";
 			return FALSE;
 		}
 
@@ -480,7 +482,7 @@ class Tesseract_FileUpload
 			if ( ! $this->is_allowed_filetype(TRUE))
 			{
 				// TODO: log -
-				$uploadError = "upload_invalid_filetype";
+				$this->uploadError = "upload_invalid_filetype";
 				return FALSE;
 			}
 		}
@@ -496,7 +498,7 @@ class Tesseract_FileUpload
 		if ( ! $this->is_allowed_filesize())
 		{
 			// TODO: log -
-			$uploadError = "upload_invalid_filesize";
+			$this->uploadError = "upload_invalid_filesize";
 			return FALSE;
 		}
 		*/
@@ -507,7 +509,7 @@ class Tesseract_FileUpload
 		if ( ! $this->is_allowed_dimensions())
 		{
 			// TODO: log -
-			$uploadError = "upload_invalid_dimensions";
+			$this->uploadError = "upload_invalid_dimensions";
 			return FALSE;
 		}
 		*/
@@ -563,7 +565,7 @@ class Tesseract_FileUpload
 			if ($this->do_xss_clean() === FALSE)
 			{
 				// TODO: log -
-				$uploadError = "upload_unable_to_write_file";
+				$this->uploadError = "upload_unable_to_write_file";
 				return FALSE;
 			}
 		}
@@ -581,7 +583,7 @@ class Tesseract_FileUpload
 			if ( ! @move_uploaded_file($this->file_temp, $this->upload_path.$this->file_name))
 			{
 				// TODO: log -
-				$uploadError = "upload_destination_error";
+				$this->uploadError = "upload_destination_error";
 				return FALSE;
 			}
 		}
