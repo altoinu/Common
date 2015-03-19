@@ -15,7 +15,7 @@
 (function($targetObject, $) {
 	
 	var namespace = "com.altoinu.javascript.css";
-	var version = "1.0";
+	var version = "1.0.1";
 	console.log(namespace + " - CSSUtils.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -24,6 +24,13 @@
 	ns.CSSUtils = function() {
 	};
 	
+	/**
+	 * Shrinks selected label element font size until it fits parent
+	 * container without line break.
+	 * 
+	 * The target labelElement must have css white-space: pre;
+	 * (and float: left; I think. haven't tested this yet)
+	 */
 	ns.CSSUtils.shrinkFontSizeToFit = function(labelElement, initialFontSize) {
 		
 		var labelContainerWidth = labelElement.parent().width();
