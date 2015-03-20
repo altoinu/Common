@@ -15,7 +15,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.utils";
-	var version = "1.3";
+	var version = "1.4";
 	console.log(namespace + " - utils.js: " + version);
 
 	if (!$targetObject) {
@@ -221,6 +221,43 @@
 		//console.log(matchedItem);
 		return matchedItem;
 
+	};
+
+	/**
+	 * Get Android version
+	 * 
+	 * @return in Array format, [major, minor, rev], or false if not Android
+	 */
+	ns.getAndroidVersion = function(ua) {
+		
+	    var ua = ua || window.navigator.userAgent; 
+	    var match = ua.match(/Android\s([0-9\.]*)/);
+	    return match ? match[1].split(".") : false;
+	    
+	};
+	
+	/**
+	 * Get iOS version
+	 * 
+	 * @return in Array format, [major, minor, rev], or false if not iOS
+	 */
+	ns.getiOSVersion = function() {
+		
+		var ua = window.navigator.userAgent.toLowerCase();
+		var isiPhone = /iphone/i.test(ua);
+		var isiPad = /ipad/i.test(ua);
+		
+		if (isiPhone || isiPad) {
+			
+			var v = (window.navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+			return [parseInt(v[1], 10), parseInt(v[2], 10), parseInt(v[3] || 0, 10)];
+			
+		} else {
+			
+			return false;
+			
+		}
+		
 	};
 
 	// Create namespace on $targetObject and set object in it
