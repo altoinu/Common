@@ -48,7 +48,7 @@ import com.google.gson.reflect.TypeToken;
 
 /**
  * WebViewBridge
- * Version 1.0
+ * Version 1.1.2
  * 
  * Requires Gson https://code.google.com/p/google-gson/
  * 

@@ -29,6 +29,7 @@ package com.altoinu.air.mx.controls
 	 * to get dispatched even though it is not supposed to.
 	 * 
 	 * @author Kaoru Kawashima
+	 * @version 1.1.2
 	 * 
 	 */
 	public class StageWebViewBridgeUIComponent extends StageWebViewUIComponent
