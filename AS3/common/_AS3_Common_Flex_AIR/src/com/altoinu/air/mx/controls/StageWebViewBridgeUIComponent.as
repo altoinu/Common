@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
  * 
- * Copyright (c) 2014 Kaoru Kawashima @altoinu http://altoinu.com
+ * Copyright (c) 2015 Kaoru Kawashima @altoinu http://altoinu.com
  */
 package com.altoinu.air.mx.controls
 {
@@ -108,13 +108,6 @@ package com.altoinu.air.mx.controls
 		 */
 		protected var responseProtocol:String = "kaorulikescurryrice";
 		
-		/**
-		 * JavaScript method in HTML page that will take actual JS method to be called
-		 * and name of callback AS3 function to be receive response, in form:
-		 * <codE>function(targetJSMethod, args, returnAS3Handler)</code>
-		 */
-		protected var bridgeJSFunction:String = "functionCall";
-		
 		//--------------------------------------------------------------------------
 		//
 		//  Public properties
@@ -190,7 +183,7 @@ package com.altoinu.air.mx.controls
 			
 		}
 		
-		private static function createCommandObj(methodName:String, args:Array = null):Object
+		private static function createCommandObj(methodName:String, args:Array = null, callbackMethodName:String = null):Object
 		{
 			
 			// Command
@@ -202,6 +195,9 @@ package com.altoinu.air.mx.controls
 			var numArgs:int = (args != null ? args.length : 0);
 			if (numArgs > 0)
 				command.arguments = args;
+			
+			if (callbackMethodName != null)
+				command.callback = callbackMethodName;
 			
 			return command;
 			
@@ -227,7 +223,7 @@ package com.altoinu.air.mx.controls
 				for each (var command:Object in queuedJavaScriptCommands)
 				{
 					
-					trace("<-- " + command.method + (command.hasOwnProperty("arguments") ? ", " + command.arguments : ""));
+					trace("<-- " + command.method + (command.hasOwnProperty("arguments") ? ", " + command.arguments : "") + (command.hasOwnProperty("callback") ? ", " + command.callback : ""));
 					
 				}
 				
@@ -276,10 +272,11 @@ package com.altoinu.air.mx.controls
 		 * and pass it as URL hash, which HTML page will detect through hash change event.
 		 * 
 		 * @param methodName
+		 * @param callbackMethodName
 		 * @param args
 		 * 
 		 */
-		protected function callJS(methodName:String, ...args):void
+		protected function callJS(methodName:String, callbackMethodName:String, ...args):void
 		{
 			
 			if (contentLoaded)
@@ -297,7 +294,7 @@ package com.altoinu.air.mx.controls
 				// need to do this because hashchange event in HTML page may not capture all changes
 				// so I'm sending it as one
 				//queuedJavaScriptCommands.push(hash);
-				queuedJavaScriptCommands.push(createCommandObj(methodName, args));
+				queuedJavaScriptCommands.push(createCommandObj(methodName, args, callbackMethodName));
 				
 				if (queuedJavaScriptCommands.length == 1)
 					callLater(webViewExecuteNextJavaScriptCommand);
@@ -373,28 +370,6 @@ package com.altoinu.air.mx.controls
 		//
 		//--------------------------------------------------------------------------
 		
-		/*
-		[Deprecated(replacement="execJavaScript")]
-		public function callJavaScript(methodName:String, ...args):void
-		{
-			
-			var callJSArgs:Array = [methodName];
-			if (args.length > 0)
-				callJSArgs = callJSArgs.concat(args);
-			
-			callJS.apply(this, callJSArgs);
-			
-		}
-		
-		[Deprecated(replacement="execJavaScript")]
-		public function callJavaScriptAndCallback(jsMethod:String, callback:Function, jsMethodArgs:Array = null):void
-		{
-			
-			execJavaScript(jsMethod, jsMethodArgs, callback);
-			
-		}
-		*/
-		
 		/**
 		 * This method will serve as a bridge to HTML page and also back to
 		 * AIR app via <code>callback</code>, so if there is a return value(s)
@@ -410,22 +385,21 @@ package com.altoinu.air.mx.controls
 		public function execJavaScript(jsMethodName:String, argsArray:Array = null, callback:Function = null):void
 		{
 			
+			var callJSArgs:Array = [jsMethodName];
 			if (callback == null)
 			{
 				
 				// No callback method
 				
-				var callJSArgs:Array = [jsMethodName];
-				if ((argsArray != null) && (argsArray.length > 0))
-					callJSArgs = callJSArgs.concat(argsArray);
-				
-				callJS.apply(this, callJSArgs);
+				callJSArgs.push(null); // no callback for 2nd arg
 				
 			}
 			else
 			{
 				
 				// callback method defined, make sure it is defined
+				
+				var callbackValid:Boolean = false;
 				
 				//var type:XML = ClassUtil.describeType(callbackDelegate);
 				var type:XML = describeType(callbackDelegate);
@@ -440,17 +414,26 @@ package com.altoinu.air.mx.controls
 						
 						// Convert callback method name to string
 						var callbackMethodName:String = String(method.@name);
-						callJS(bridgeJSFunction, createCommandObj(jsMethodName, argsArray), callbackMethodName);
-						
-						return;
+						callJSArgs.push(callbackMethodName);
+						callbackValid = true;
 						
 					}
 					
 				}
 				
-				throw new Error("Specified callback " + String(method.@name) + " is not public method of " + getQualifiedClassName(callbackDelegate));
+				if (!callbackValid) {
+					
+					throw new Error("Specified callback " + String(method.@name) + " is not public method of " + getQualifiedClassName(callbackDelegate));
+					return;
+					
+				}
 				
 			}
+			
+			if ((argsArray != null) && (argsArray.length > 0))
+				callJSArgs = callJSArgs.concat(argsArray);
+			
+			callJS.apply(this, callJSArgs);
 			
 		}
 		
