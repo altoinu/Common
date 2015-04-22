@@ -3,12 +3,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
  * 
- * Copyright (c) 2014 Kaoru Kawashima @altoinu http://altoinu.com
+ * Copyright (c) 2015 Kaoru Kawashima @altoinu http://altoinu.com
  */
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.air.utils";
-	var version = "1.1.1";
+	var version = "1.1.2";
 	console.log(namespace + " - WebViewBridge.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -55,7 +55,7 @@
 		 *            command object in form "{method: method name, arguments: [arg1, arg2...]},"
 		 *            (arguments optional)
 		 */
-		var processResponseFromApp = function(command) {
+		var processParamsFromApp = function(command) {
 
 			var thisItem;
 			var methodName = command.method;
@@ -70,6 +70,8 @@
 			// else if (methodName in window)
 			// thisItem = window;
 
+			var returnResult;
+			
 			if (thisItem) {
 
 				// call methodName specified (with arguments if they exist)
@@ -77,9 +79,17 @@
 				var methodArgs = (command.hasOwnProperty("arguments") ? command.arguments : null);
 
 				// alert(methodName + "\n" + methodArgs);
-				return {
+				returnResult = {
 					result: method.apply(thisItem, methodArgs)
 				};
+				
+				if (command.hasOwnProperty("callback")) {
+					
+					// do callback with results
+					var callbackMethodName = command.callback;
+					doCallback(callbackMethodName, returnResult.result);
+					
+				}
 
 			} else {
 
@@ -88,19 +98,49 @@
 
 			}
 
-			return null;
+			return returnResult;
 
 		};
-
+		
 		var processParamsToApp = function() {
 
 			// now, actually pass parameters to app through location href
-			if (!$.browser.mozilla && !$.browser.ie)
+			//if (!$.browser.mozilla && !$.browser.ie)
 				window.location.href = "kaorulikescurryrice://" + paramsToApp;
 
 			paramsToApp = ""; // clear
 
 		};
+		
+		var doCallback = function(callbackMethodName, returnVal) {
+			
+			var returnCallParams = [
+				callbackMethodName
+			];
+
+			if (returnVal) {
+
+				if (typeof returnVal == "object") {
+
+					// Push each item separately
+					for ( var i in returnVal) {
+
+						returnCallParams.push(returnVal[i]);
+
+					}
+
+				} else {
+
+					// Normal object so just push
+					returnCallParams.push(returnVal);
+
+				}
+
+			}
+
+			me.callAppMethod.apply(me, returnCallParams);
+			
+		}
 
 		// --------------------------------------------------------------------------
 		//
@@ -148,58 +188,6 @@
 
 		};
 
-		/**
-		 * This method will serve as a bridge from app to HTML/JS, then back
-		 * to app for return data. First, command is executed from
-		 * app. The return value will be passed to method
-		 * <code>callbackMethodName(...args)</code> in the app,
-		 * 
-		 * @param command
-		 *            command object in form "{method: method name, arguments: [arg1, arg2...]},"
-		 *            (arguments optional)
-		 * @param callbackMethodName
-		 *            Method name (ex AS3 method in AIR) in the app to be called with
-		 *            return value(s) from targetJSMethod
-		 */
-		this.functionCall = function(command, callbackMethodName) {
-
-			var response = processResponseFromApp(command);
-
-			if (response) {
-
-				// Then call app method back with returned value
-				var returnCallParams = [
-					callbackMethodName
-				];
-
-				var returnVal = response.result;
-
-				if (returnVal) {
-
-					if (typeof returnVal == "object") {
-
-						// Push each item separately
-						for ( var i in returnVal) {
-
-							returnCallParams.push(returnVal[i]);
-
-						}
-
-					} else {
-
-						// Normal object so just push
-						returnCallParams.push(returnVal);
-
-					}
-
-				}
-
-				me.callAppMethod.apply(me, returnCallParams);
-
-			}
-
-		};
-
 		// --------------------------------------------------------------------------
 		//
 		// Event handlers
@@ -208,6 +196,7 @@
 
 		var onHashChange = function() {
 
+			console.log("onHashChange: " + window.location.hash);
 			var hash = decodeURIComponent(window.location.hash);
 
 			if (hash != "") {
@@ -221,7 +210,7 @@
 				var numCommands = commands.length;
 				for (var i = 0; i < numCommands; i++) {
 
-					var response = processResponseFromApp(commands[i]);
+					var returnResult = processParamsFromApp(commands[i]);
 
 				}
 
@@ -234,7 +223,7 @@
 				// window.location.hash.substring(window.location.hash.indexOf("&")
 				// + 1);
 
-				// processResponseFromApp(paramString);
+				// processParamsFromApp(paramString);
 				// me.callAppMethod("onJavaScriptExecuteComplete");
 
 			}

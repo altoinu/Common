@@ -1,9 +1,9 @@
 //
 //  UIWebViewBridge.m
-//  Version 1.0
+//  Version 1.1
 //
 //  Created by Kaoru Kawashima on 3/18/14.
-//  Copyright (c) 2014 Kaoru Kawashima. All rights reserved.
+//  Copyright (c) 2015 Kaoru Kawashima. All rights reserved.
 //
 //  This Source Code Form is subject to the terms of the Mozilla Public
 //  License, v. 2.0. If a copy of the MPL was not distributed with this file,
@@ -28,9 +28,9 @@
  and name of callback function to be receive response, in form:
  function(targetJSMethod, args, returnAS3Handler)
  */
-@property NSString* bridgeJSFunction;
+//@property NSString* bridgeJSFunction;
 
-- (void)callJS:(NSString *)methodName arguments:(id)args, ...;
+- (void)callJS:(NSString *)methodName callback:(SEL)callback arguments:(id)args, ...;
 - (void)processResponseFromWebView:(NSString *)stringToBeDecoded;
 
 @end
@@ -46,7 +46,7 @@
 
 @synthesize queuedJavaScriptCommands = _queuedJavaScriptCommands;
 @synthesize responseProtocol = _responseProtocol;
-@synthesize bridgeJSFunction = _bridgeJSFunction;
+//@synthesize bridgeJSFunction = _bridgeJSFunction;
 
 //--------------------------------------------------------------------------
 //
@@ -59,7 +59,7 @@
     
     _queuedJavaScriptCommands = NULL;
     _responseProtocol = @"kaorulikescurryrice";
-    _bridgeJSFunction = @"functionCall";
+    //_bridgeJSFunction = @"functionCall";
     
     contentLoaded = NO;
     hashcounter = 0;
@@ -234,12 +234,22 @@
 - (NSDictionary *)createCommandObj:(NSString *)methodName arguments:(NSArray *)args
 {
     
+    return [self createCommandObj:methodName arguments:args callback:NULL];
+    
+}
+
+- (NSDictionary *)createCommandObj:(NSString *)methodName arguments:(NSArray *)args callback:(SEL)callback
+{
+    
     //NSMutableDictionary *command = [NSMutableDictionary dictionaryWithObject:methodName forKey:@"method"];
     NSMutableDictionary *command = @{@"method":methodName}.mutableCopy;
     
     int numArgs = (args != NULL ? (int)args.count : 0);
     if (numArgs > 0)
         [command setObject:args forKey:@"arguments"];
+    
+    if (callback != NULL)
+        [command setObject:NSStringFromSelector(callback) forKey:@"callback"];
     
     return command;
     
@@ -280,7 +290,7 @@
     
 }
 
-- (void)callJS:(NSString *)methodName arguments:(id)args, ...
+- (void)callJS:(NSString *)methodName callback:(SEL)callback arguments:(id)args, ...
 {
     
     if (contentLoaded) {
@@ -325,7 +335,8 @@
         // Put all JavaScript commands into Array so they will be called all at once later
         // need to do this because hashchange event in HTML page may not capture all changes
         // so I'm sending it as one
-        [self.queuedJavaScriptCommands addObject:[self createCommandObj:methodName arguments:arguments]];
+        //[self.queuedJavaScriptCommands addObject:[self createCommandObj:methodName arguments:arguments]];
+        [self.queuedJavaScriptCommands addObject:[self createCommandObj:methodName arguments:arguments callback:callback]];
         
         if (self.queuedJavaScriptCommands.count == 1)
             [self performSelector:@selector(webViewExecuteNextJavaScriptCommand) withObject:nil afterDelay:0];
@@ -511,7 +522,8 @@
 - (void)execJavaScript:(NSString *)jsMethodName arguments:(NSArray *)args
 {
     
-    [self callJS:jsMethodName arguments:args, nil];
+    //[self callJS:jsMethodName arguments:args, nil];
+    [self callJS:jsMethodName callback:NULL arguments:args, nil];
     
 }
 
@@ -522,7 +534,8 @@
     {
         
         // No callback method
-        [self callJS:jsMethodName arguments:args, nil];
+        //[self callJS:jsMethodName arguments:args, nil];
+        [self execJavaScript:jsMethodName arguments:args];
         
     }
     else
@@ -542,7 +555,8 @@
             if ([self.callbackDelegate respondsToSelector:callback])
             {
                 
-                [self callJS:self.bridgeJSFunction arguments:[self createCommandObj:jsMethodName arguments:args], NSStringFromSelector(callback), nil];
+                //[self callJS:self.bridgeJSFunction arguments:[self createCommandObj:jsMethodName arguments:args], NSStringFromSelector(callback), nil];
+                [self callJS:jsMethodName callback:callback arguments:args, nil];
                 
             }
             else
