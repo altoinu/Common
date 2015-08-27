@@ -19,7 +19,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.display.UI";
-	var version = "1.0";
+	var version = "1.0.1";
 	console.log(namespace + " - UI.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -37,7 +37,7 @@
 	 * @param cssClass
 	 * @returns {ns.StyledRadioButton}
 	 */
-	ns.StyledRadioButton = function(value, labelText, groupName, cssClass) {
+	var StyledRadioButton = function(value, labelText, groupName, cssClass) {
 
 		// --------------------------------------------------------------------------
 		//
@@ -151,6 +151,7 @@
 
 	};
 
+	ns.StyledRadioButton = StyledRadioButton;
 	return ns;
 
 })(window);

@@ -31,7 +31,7 @@
 	 * @param timerCSSClass
 	 * @returns {ns.TimerDisplay}
 	 */
-	ns.TimerDisplay = function(timerCSSClass) {
+	var TimerDisplay = function(timerCSSClass) {
 
 		// --------------------------------------------------------------------------
 		//
@@ -202,6 +202,7 @@
 
 	};
 
+	ns.TimerDisplay = TimerDisplay;
 	return ns;
 
 })(window);

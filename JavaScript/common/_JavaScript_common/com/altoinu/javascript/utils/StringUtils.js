@@ -17,7 +17,7 @@
 (function($targetObject) {
 	
 	var namespace = "com.altoinu.javascript.utils";
-	var version = "0.1";
+	var version = "0.1.1";
 	console.log(namespace + " - StringUtils.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -26,16 +26,19 @@
 	/**
 	 * NumberUtils class
 	 */
-	ns.StringUtils = function() {
-
+	var StringUtils = function() {
+		var me = this;
 	};
 	
-	ns.StringUtils.stripHTML = function(s) {
+	StringUtils.stripHTML = function(s) {
 		
 		return s.replace(/<.*?>/g, "");
 		
 	}
-	
+
+	ns.StringUtils = StringUtils;
+	return ns;
+
 })(window);
 //You can change $targetObject here to something other than default reference
 //to "window" object to store elements and classes under it

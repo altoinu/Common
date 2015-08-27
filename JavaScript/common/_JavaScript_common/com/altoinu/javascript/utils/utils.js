@@ -15,7 +15,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.utils";
-	var version = "1.4";
+	var version = "1.4.1";
 	console.log(namespace + " - utils.js: " + version);
 
 	if (!$targetObject) {
@@ -26,6 +26,7 @@
 	}
 
 	var ns = function() {
+		var me = this;
 	};
 
 	/**

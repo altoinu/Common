@@ -26,8 +26,8 @@
 	/**
 	 * ArrayUtils class
 	 */
-	ns.ArrayUtils = function() {
-
+	var ArrayUtils = function() {
+		var me = this;
 	};
 
 	/**
@@ -40,7 +40,7 @@
 	 *            if the original array is changed. False will modify the
 	 *            original array, True will return a new array. Default false.
 	 */
-	ns.ArrayUtils.shuffle = function(array, copy) {
+	ArrayUtils.shuffle = function(array, copy) {
 
 		var returnArray = [];
 		var orgArray = array.slice();
@@ -72,6 +72,7 @@
 
 	};
 
+	ns.ArrayUtils = ArrayUtils;
 	return ns;
 
 })(window);

@@ -17,7 +17,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.events";
-	var version = "1.1";
+	var version = "1.1.1";
 	console.log(namespace + " - EventDispatcher.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -36,7 +36,7 @@
 	 * @param cancelable
 	 * @returns {ns.Event}
 	 */
-	ns.Event = function(type, bubbles, cancelable) {
+	var Event = function(type, bubbles, cancelable) {
 
 		// --------------------------------------------------------------------------
 		//
@@ -54,9 +54,9 @@
 
 	};
 
-	ns.Event.prototype.clone = function() {
+	Event.prototype.clone = function() {
 
-		return new ns.Event(this.type, this.bubbles, this.cancelable);
+		return new Event(this.type, this.bubbles, this.cancelable);
 
 	};
 
@@ -95,7 +95,7 @@
 	 * @param target
 	 * @returns {ns.EventDispatcher}
 	 */
-	ns.EventDispatcher = function(target) {
+	var EventDispatcher = function(target) {
 
 		// --------------------------------------------------------------------------
 		//
@@ -256,7 +256,7 @@
 		 */
 		this.dispatchEvent = function(event) {
 
-			if ((event instanceof ns.Event) && bubbleEvents[event.type]) {
+			if ((event instanceof Event) && bubbleEvents[event.type]) {
 
 				// All listeners for this event type
 				var listeners = bubbleEvents[event.type].concat();
@@ -291,6 +291,8 @@
 
 	};
 
+	ns.Event = Event;
+	ns.EventDispatcher = EventDispatcher;
 	return ns;
 
 })(window);

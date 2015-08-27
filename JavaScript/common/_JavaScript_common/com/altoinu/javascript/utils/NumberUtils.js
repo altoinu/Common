@@ -17,7 +17,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.utils";
-	var version = "1.1.1";
+	var version = "1.1.21";
 	console.log(namespace + " - NumberUtils.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -26,8 +26,8 @@
 	/**
 	 * NumberUtils class
 	 */
-	ns.NumberUtils = function() {
-
+	var NumberUtils = function() {
+		var me = this;
 	};
 
 	/**
@@ -40,7 +40,7 @@
 	 * @param s
 	 * @returns
 	 */
-	ns.NumberUtils.toWords = function(s) {
+	NumberUtils.toWords = function(s) {
 
 		// American Numbering System
 		var th = [
@@ -143,7 +143,7 @@
 	 * @params containerHeight
 	 * @params precision Number of decimal points
 	 */
-	ns.NumberUtils.getFitScale = function(width, height, containerWidth, containerHeight, precision) {
+	NumberUtils.getFitScale = function(width, height, containerWidth, containerHeight, precision) {
 
 		var decimalNum = (precision != null) && isFinite(precision) && (precision >= 0) ? Math.floor(precision) : 2;
 		var fit_scale_x = containerWidth / width;
@@ -153,6 +153,7 @@
 
 	};
 
+	ns.NumberUtils = NumberUtils;
 	return ns;
 
 })(window);

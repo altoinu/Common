@@ -19,7 +19,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.touch";
-	var version = "1.2";
+	var version = "1.2.1";
 	console.log(namespace + " - Touch.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -28,8 +28,8 @@
 	/**
 	 * Touch class
 	 */
-	ns.Touch = function() {
-
+	var Touch = function() {
+		var me = this;
 	};
 
 	/**
@@ -37,7 +37,7 @@
 	 * 
 	 * @return true/false
 	 */
-	ns.Touch.isTouchDevice = function() {
+	Touch.isTouchDevice = function() {
 
 		// Check in the actual "window" object instead of $targetObject
 		// to see if touch related events exist
@@ -46,6 +46,7 @@
 
 	};
 
+	ns.Touch = Touch;
 	return ns;
 
 })(window);
