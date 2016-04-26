@@ -8,13 +8,13 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.data";
-	var version = "1.0";
+	var version = "1.0.1";
 	console.log(namespace + " - BinaryTree.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
 	var ns = $targetObject.com.altoinu.javascript.utils.createNamespace($targetObject, namespace);
 
-	ns.BinarySearchTreeNode = function(data, key) {
+	var BinarySearchTreeNode = function(data, key) {
 
 		// --------------------------------------------------------------------------
 		//
@@ -27,7 +27,7 @@
 
 	};
 
-	ns.BinarySearchTree = function(left, node, parent, right) {
+	var BinarySearchTree = function(left, node, parent, right) {
 
 		// --------------------------------------------------------------------------
 		//
@@ -77,7 +77,7 @@
 	 * @param key
 	 * @returns {Number} -1 if left, 0 if equal, 1 if right
 	 */
-	ns.BinarySearchTree.prototype.compare = function(key) {
+	BinarySearchTree.prototype.compare = function(key) {
 
 		if (key < this.node.key)
 			return -1;
@@ -88,7 +88,7 @@
 
 	};
 
-	ns.BinarySearchTree.prototype.find = function(key) {
+	BinarySearchTree.prototype.find = function(key) {
 		
 		if (this.node == null) {
 			
@@ -114,7 +114,7 @@
 	 * @param newNode
 	 * @returns leaf tree of this tree where node is inserted
 	 */
-	ns.BinarySearchTree.prototype.insert = function(newNode) {
+	BinarySearchTree.prototype.insert = function(newNode) {
 
 		if (!this.node) {
 			
@@ -135,7 +135,7 @@
 				// look in left
 				if (!this.left) {
 					
-					this.left = new ns.BinarySearchTree(null, newNode, this, null);
+					this.left = new BinarySearchTree(null, newNode, this, null);
 					return this.left;
 					
 				} else {
@@ -149,7 +149,7 @@
 				// look in right
 				if (!this.right) {
 					
-					this.right = new ns.BinarySearchTree(null, newNode, this, null);
+					this.right = new BinarySearchTree(null, newNode, this, null);
 					return this.right;
 					
 				} else {
@@ -164,6 +164,8 @@
 
 	};
 
+	ns.BinarySearchTreeNode = BinarySearchTreeNode;
+	ns.BinarySearchTree = BinarySearchTree;
 	return ns;
 
 })(window);

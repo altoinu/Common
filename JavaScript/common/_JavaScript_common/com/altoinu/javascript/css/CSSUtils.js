@@ -15,13 +15,14 @@
 (function($targetObject, $) {
 	
 	var namespace = "com.altoinu.javascript.css";
-	var version = "1.0.1";
+	var version = "1.0.2";
 	console.log(namespace + " - CSSUtils.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
 	var ns = $targetObject.com.altoinu.javascript.utils.createNamespace($targetObject, namespace);
 
-	ns.CSSUtils = function() {
+	var CSSUtils = function() {
+		var me = this;
 	};
 	
 	/**
@@ -31,7 +32,7 @@
 	 * The target labelElement must have css white-space: pre;
 	 * (and float: left; I think. haven't tested this yet)
 	 */
-	ns.CSSUtils.shrinkFontSizeToFit = function(labelElement, initialFontSize) {
+	CSSUtils.shrinkFontSizeToFit = function(labelElement, initialFontSize) {
 		
 		var labelContainerWidth = labelElement.parent().width();
 		var fontSize = initialFontSize;
@@ -48,6 +49,9 @@
 		}
 		
 	};
+	
+	ns.CSSUtils = CSSUtils;
+	return ns;
 	
 })(window, window.jQuery);
 //You can change $targetObject here to something other than default reference

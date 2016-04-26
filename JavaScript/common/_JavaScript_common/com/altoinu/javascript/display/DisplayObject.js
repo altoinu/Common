@@ -22,14 +22,14 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.display";
-	var version = "1.8.2";
+	var version = "1.8.3";
 	console.log(namespace + " - DisplayObject.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
 	var ns = $targetObject.com.altoinu.javascript.utils.createNamespace($targetObject, namespace);
 	var EventDispatcher = $targetObject.com.altoinu.javascript.events.EventDispatcher;
 
-	ns.DisplayObject = function() {
+	var DisplayObject = function() {
 
 		// extends EventDispatcher
 		EventDispatcher.call(this);
@@ -111,8 +111,8 @@
 	};
 
 	// extends DisplayObject
-	ns.DisplayObject.prototype = new EventDispatcher();
-	ns.DisplayObject.prototype.constructor = ns.DisplayObject;
+	DisplayObject.prototype = new EventDispatcher();
+	DisplayObject.prototype.constructor = DisplayObject;
 
 	/**
 	 * Using specified sprite sheet image, do frame by frame animation (similar
@@ -141,7 +141,6 @@
 	 *            optional CSS class
 	 * @param imageCSSClass
 	 *            optional CSS class
-	 * @returns {ns.SpriteSheetMovieClip}
 	 * 
 	 * Events
 	 * SpriteSheetMovieClip.ON_START = "onStart" // At first frame, or last frame if reversing
@@ -150,10 +149,10 @@
 	 * SpriteSheetMovieClip.ON_STOP = "onStop" // When playing stops
 	 * SpriteSheetMovieClip.ON_ENTER_FRAME = "onEnterFrame" // At every frame
 	 */
-	ns.SpriteSheetMovieClip = function(spriteSheetURL, rows, columns, frameRate, frameOrigin, cssClass, containerCSSClass, imageCSSClass) {
+	var SpriteSheetMovieClip = function(spriteSheetURL, rows, columns, frameRate, frameOrigin, cssClass, containerCSSClass, imageCSSClass) {
 
 		// extends DisplayObject
-		ns.DisplayObject.call(this);
+		DisplayObject.call(this);
 		var _super = {};
 		for ( var _superProp in this) {
 
@@ -637,7 +636,7 @@
 
 		var doOnStart = function() {
 
-			me.dispatchEvent(new Event(ns.SpriteSheetMovieClip.ON_START));
+			me.dispatchEvent(new Event(SpriteSheetMovieClip.ON_START));
 
 			if (me.onStart)
 				me.onStart.call(me);
@@ -646,7 +645,7 @@
 		
 		var doOnPlay = function() {
 
-			me.dispatchEvent(new Event(ns.SpriteSheetMovieClip.ON_PLAY));
+			me.dispatchEvent(new Event(SpriteSheetMovieClip.ON_PLAY));
 
 			if (me.onPlay)
 				me.onPlay.call(me);
@@ -655,7 +654,7 @@
 		
 		var doOnStop = function() {
 			
-			me.dispatchEvent(new Event(ns.SpriteSheetMovieClip.ON_STOP));
+			me.dispatchEvent(new Event(SpriteSheetMovieClip.ON_STOP));
 			
 			stopPlay();
 			
@@ -666,7 +665,7 @@
 
 		var doOnComplete = function() {
 
-			me.dispatchEvent(new Event(ns.SpriteSheetMovieClip.ON_COMPLETE));
+			me.dispatchEvent(new Event(SpriteSheetMovieClip.ON_COMPLETE));
 
 			if (me.onComplete)
 				me.onComplete.call(me);
@@ -675,7 +674,7 @@
 
 		var doOnEnterFrame = function() {
 
-			me.dispatchEvent(new Event(ns.SpriteSheetMovieClip.ON_ENTER_FRAME));
+			me.dispatchEvent(new Event(SpriteSheetMovieClip.ON_ENTER_FRAME));
 
 			if (me.onEnterFrame)
 				me.onEnterFrame.call(me);
@@ -961,16 +960,18 @@
 	};
 
 	// extends DisplayObject
-	ns.SpriteSheetMovieClip.prototype = new ns.DisplayObject();
-	ns.SpriteSheetMovieClip.prototype.constructor = ns.SpriteSheetMovieClip;
+	SpriteSheetMovieClip.prototype = new DisplayObject();
+	SpriteSheetMovieClip.prototype.constructor = SpriteSheetMovieClip;
 
 	// constants
-	ns.SpriteSheetMovieClip.ON_START = "onStart";
-	ns.SpriteSheetMovieClip.ON_COMPLETE = "onComplete";
-	ns.SpriteSheetMovieClip.ON_PLAY = "onPlay";
-	ns.SpriteSheetMovieClip.ON_STOP = "onStop";
-	ns.SpriteSheetMovieClip.ON_ENTER_FRAME = "onEnterFrame";
+	SpriteSheetMovieClip.ON_START = "onStart";
+	SpriteSheetMovieClip.ON_COMPLETE = "onComplete";
+	SpriteSheetMovieClip.ON_PLAY = "onPlay";
+	SpriteSheetMovieClip.ON_STOP = "onStop";
+	SpriteSheetMovieClip.ON_ENTER_FRAME = "onEnterFrame";
 
+	ns.DisplayObject = DisplayObject;
+	ns.SpriteSheetMovieClip = SpriteSheetMovieClip;
 	return ns;
 
 })(window);

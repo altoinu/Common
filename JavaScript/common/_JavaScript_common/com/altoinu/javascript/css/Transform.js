@@ -21,7 +21,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.css";
-	var version = "1.0";
+	var version = "1.0.1";
 	console.log(namespace + " - Transform.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -35,12 +35,8 @@
 
 	var TRANSFORM_MATRIX_REGEX = /matrix\((-?\d*\.?\d+),\s*0,\s*0,\s*(-?\d*\.?\d+),\s*0,\s*0\)/;
 
-	/**
-	 * 
-	 * @returns {ns.CSSTransform}
-	 */
-	ns.CSSTransform = function() {
-
+	var CSSTransform = function() {
+		var me = this;
 	};
 
 	/**
@@ -49,7 +45,7 @@
 	 * @param selector
 	 * @returns
 	 */
-	ns.CSSTransform.getTransformMatrix = function(selector) {
+	CSSTransform.getTransformMatrix = function(selector) {
 
 		var jqobj = selector ? $(selector) : null;
 		return jqobj ?
@@ -65,9 +61,9 @@
 	 * @returns {scaleX: x, scaleY: y} or null if CSS transform is not specified
 	 *          or not supported by browser.
 	 */
-	ns.CSSTransform.getScale = function(selector) {
+	CSSTransform.getScale = function(selector) {
 
-		var transform = ns.CSSTransform.getTransformMatrix(selector);
+		var transform = CSSTransform.getTransformMatrix(selector);
 
 		if (transform) {
 
@@ -88,6 +84,7 @@
 
 	};
 
+	ns.CSSTransform = CSSTransform;
 	return ns;
 
 })(window);
