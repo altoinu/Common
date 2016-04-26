@@ -50,7 +50,9 @@ import com.google.gson.reflect.TypeToken;
  * WebViewBridge
  * Version 1.1.2
  * 
- * Requires Gson https://code.google.com/p/google-gson/
+ * Requires:
+ * Gson https://code.google.com/p/google-gson/
+ * Code_Samples/Android Projects/WebViewBridgeExample/assets/html/*
  * 
  * See example: Code_Samples/Android Projects/WebViewBridgeExample
  * @author kaoru
