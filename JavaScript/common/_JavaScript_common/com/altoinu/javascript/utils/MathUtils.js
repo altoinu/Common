@@ -23,14 +23,14 @@
 (function($targetObject, $) {
 
 	var namespace = "com.altoinu.javascript.utils";
-	var version = "1.0";
+	var version = "1.0.1";
 	console.log(namespace + " - MathUtils.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
 	var ns = $targetObject.com.altoinu.javascript.utils.createNamespace($targetObject, namespace);
 
-	ns.MathUtils = function() {
-
+	var MathUtils = function() {
+		var me = this;
 	};
 
 	/**
@@ -38,7 +38,7 @@
 	 * @param min
 	 * @param max
 	 */
-	ns.MathUtils.randRange = function(min, max) {
+	MathUtils.randRange = function(min, max) {
 
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -55,7 +55,7 @@
 	 * @params containerHeight
 	 * @params precision Number of decimal points
 	 */
-	ns.MathUtils.getFitScale = function(width, height, containerWidth, containerHeight, precision) {
+	MathUtils.getFitScale = function(width, height, containerWidth, containerHeight, precision) {
 
 		var decimalNum = (precision != null) && isFinite(precision) && (precision >= 0) ? Math.floor(precision) : 2;
 		var fit_scale_x = containerWidth / width;
@@ -65,6 +65,7 @@
 
 	};
 
+	ns.MathUtils = MathUtils;
 	return ns;
 
 })(window, window.jQuery);

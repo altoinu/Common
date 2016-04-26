@@ -17,7 +17,7 @@
 (function($targetObject) {
 
 	var namespace = "com.altoinu.javascript.utils";
-	var version = "1.1";
+	var version = "1.1.1";
 	console.log(namespace + " - NetUtils.js: " + version);
 
 	// Create namespace on $targetObject and set object in it
@@ -26,8 +26,8 @@
 	/**
 	 * NetUtils class
 	 */
-	ns.NetUtils = function() {
-
+	var NetUtils = function() {
+		var me = this;
 	};
 
 	/**
@@ -41,7 +41,7 @@
 	 * @param dataURI
 	 * @returns {Blob}
 	 */
-	ns.NetUtils.dataURItoBlob = function(dataURI) {
+	NetUtils.dataURItoBlob = function(dataURI) {
 		'use strict'
 		var byteString, mimestring;
 
@@ -65,6 +65,7 @@
 		});
 	};
 
+	ns.NetUtils = NetUtils;
 	return ns;
 
 })(window);
