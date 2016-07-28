@@ -1,3 +1,7 @@
+/**
+ * 2016-07-28
+ * v1.0.1
+ */
 //--------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -95,7 +99,8 @@ var app_base = function(logPrefix, config) {
 	}
 
 	// routes
-	app.use(routeSetterDef.routes);
+	if (routeSetterDef)
+		app.use(routeSetterDef.routes);
 
 	// catch 404 and forward to error handler
 	app.use(function(req, res, next) {
