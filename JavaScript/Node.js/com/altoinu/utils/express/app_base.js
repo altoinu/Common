@@ -1,8 +1,8 @@
 /**
- * 2016-07-28
- * v1.0.2
+ * 2016-08-2
+ * v1.0.3
  */
-var VERSION = '1.0.2';
+var VERSION = '1.0.3';
 //--------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -120,14 +120,34 @@ var app_base = function(logPrefix, config) {
 
 	});
 
+	// error handlers
+	app.use(function(err, req, res, next) {
+
+		res.status(err.status || 500);
+		next(err);
+
+	});
+	
 	// development error handler
 	// will print stacktrace
 	if (app.get('env') === 'development') {
 
+		// return as json if .json is in URL
+		app.use('/\*.json', function(err, req, res, next) {
+
+			res.json({
+				status: err.status || 500,
+				message: err.message,
+				error: err.stack
+			});
+
+		});
+		
+		// render
 		app.use(function(err, req, res, next) {
 
-			res.status(err.status || 500);
 			res.render('error', {
+				status: err.status || 500,
 				message: err.message,
 				error: err
 			});
@@ -140,9 +160,9 @@ var app_base = function(logPrefix, config) {
 	// no stacktraces leaked to user
 	app.use(function(err, req, res, next) {
 
-		// res.status(err.status || 500).send(ObjectUtils.convertToErrorObj(err));
-		res.status(err.status || 500);
+		// res.send(ObjectUtils.convertToErrorObj(err));
 		res.render('error', {
+			status: err.status || 500,
 			message: err.message,
 			error: {}
 		});
