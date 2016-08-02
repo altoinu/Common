@@ -1,7 +1,8 @@
 /**
  * 2016-07-28
- * v1.0.1
+ * v1.0.2
  */
+var VERSION = '1.0.2';
 //--------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -44,6 +45,7 @@ var app_base = function(logPrefix, config) {
 	var middleware = config.hasOwnProperty('middleware') ? config.middleware : null;
 	var routeSetterDef = config.hasOwnProperty('routeSetterDef') ? config.routeSetterDef : null;
 	var serverPort = config.hasOwnProperty('serverPort') ? config.serverPort : null;
+	var serverPath = config.hasOwnProperty('serverPath') ? config.serverPath : null;
 
 	var app = mod_express();
 
@@ -99,8 +101,15 @@ var app_base = function(logPrefix, config) {
 	}
 
 	// routes
-	if (routeSetterDef)
-		app.use(routeSetterDef.routes);
+	if (routeSetterDef) {
+		
+		// if path specified, mount routes to there 
+		if (serverPath)
+			app.use((serverPath.charAt(0) != '/' ? '/' : '') + serverPath, routeSetterDef.routes);
+		else
+			app.use(routeSetterDef.routes);
+			
+	}
 
 	// catch 404 and forward to error handler
 	app.use(function(req, res, next) {
@@ -176,4 +185,5 @@ var app_base = function(logPrefix, config) {
 
 }
 
+app_base.version = VERSION;
 module.exports = app_base;
