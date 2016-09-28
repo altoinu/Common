@@ -1,6 +1,6 @@
 /**
  * 2016-05-31
- * v1.0
+ * v1.0.1
  */
 var Logger = require('../utils/Logger.js');
 var logger = new Logger();
@@ -36,13 +36,15 @@ module.exports = function(routesDef) {
 	var routeCheck = function(req, res, next) {
 
 		logger.log('================================================Route');
-		logger.log('req.method req.originalUrl');
-		logger.log(req.method + ' ' + req.originalUrl);
-		//logger.log('req.baseUrl ' + req.baseUrl + ', req.path ' + req.path);
+		logger.log('req.originalUrl', req.method, req.originalUrl);
+		logger.log('req.baseUrl', req.baseUrl);
+		logger.log('req.path', req.path);
+		logger.log('req.url', req.url);
+		
 		if (req.query) {
 
 			//logger.log('req.query');
-			logger.log(req.query);
+			logger.log('req.query', req.query);
 
 		}
 		//logger.log('req.route');

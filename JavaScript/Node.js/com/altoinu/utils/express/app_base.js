@@ -27,7 +27,7 @@ var ObjectUtils = require('./ObjectUtils.js');
  * 
  * @param logPrefix
  * @param config
- *            {appSettings, middleware, routeSetterDef, serverPort}
+ *            {appSettings, middleware, routeSetterDef, serverPort, serverPath}
  */
 var app_base = function(logPrefix, config) {
 
@@ -103,7 +103,8 @@ var app_base = function(logPrefix, config) {
 	// routes
 	if (routeSetterDef) {
 		
-		// if path specified, mount routes to there 
+		// If path specified, mount routes to there [serverPath]/[routeSetterDef routes]...
+		// (ex serverPath == /api then /api/[routeSetterDef routes]...
 		if (serverPath)
 			app.use((serverPath.charAt(0) != '/' ? '/' : '') + serverPath, routeSetterDef.routes);
 		else
