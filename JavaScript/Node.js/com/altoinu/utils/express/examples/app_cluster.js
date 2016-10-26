@@ -44,7 +44,8 @@ var appObj = app_base('app_base, app_cluster.js:', {
 	],
 	middleware: cors.allow,
 	routeSetterDef: routes,
-	serverPort: config.API.port
+	serverPort: config.API.port_internal,
+	serverPath: config.API.path
 });
 
 logger.log('module? module.parent =', (module.parent ? true : false));

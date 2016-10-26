@@ -13,7 +13,6 @@
 // private variables
 //
 // --------------------------------------------------------------------------
-
 var Logger = require('../utils/Logger.js');
 var logger = new Logger();
 logger.prefix = 'CORS:';
@@ -45,6 +44,10 @@ var allow = function(corsDef, req, res, next) {
 		if (corsDef.origin.indexOf(req.headers.origin) != -1) {
 
 			// origin is defined in corsDef, allow cross domain
+
+			// add necessary headers
+
+			logger.log(req.headers.origin);
 			res.header('Access-Control-Allow-Origin', req.headers.origin);
 			// Access-Control-Allow-Credentials true/false
 			// Access-Control-Expose-Headers
@@ -64,10 +67,15 @@ var allow = function(corsDef, req, res, next) {
 
 			}
 
+			if (!requestMethod)
+				requestMethod = 'GET,POST,OPTIONS';
+			if (!requestHeader)
+				requestHeader = 'accept, content-type';
+
 			logger.log(requestMethod);
 			logger.log(requestHeader);
-			res.header('Access-Control-Allow-Methods', requestMethod ? requestMethod : 'GET,POST,OPTIONS');
-			res.header('Access-Control-Allow-Headers', requestHeader ? requestHeader : 'accept, content-type');
+			res.header('Access-Control-Allow-Methods', requestMethod);
+			res.header('Access-Control-Allow-Headers', requestHeader);
 
 		} else {
 
@@ -93,9 +101,12 @@ var allow = function(corsDef, req, res, next) {
 var CORS = function(corsDef) {
 
 	return {
-		allow: function(req, res, next) {
-			allow(corsDef, req, res, next);
-		}
+		allow: allow.bind(this, corsDef)
+	/*
+	allow: function(req, res, next) {
+		allow(corsDef, req, res, next);
+	}
+	 */
 	};
 
 };

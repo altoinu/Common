@@ -1,8 +1,15 @@
 /**
- * 2016-08-2
- * v1.0.3
+ * 2016-10-26
+ * v1.0.4
+ * 
+ * npm modules required:
+ * - express
+ * - body-parser
+ * - cookie-parser
+ * - morgan
+ * - q
  */
-var VERSION = '1.0.3';
+var VERSION = '1.0.4';
 //--------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -15,7 +22,7 @@ var mod_cookieParser = require('cookie-parser');
 var mod_morgan = require('morgan');
 var mod_Q = require('q');
 
-var ObjectUtils = require('./ObjectUtils.js');
+//var ObjectUtils = require('./ObjectUtils.js');
 
 // --------------------------------------------------------------------------
 //
@@ -44,8 +51,8 @@ var app_base = function(logPrefix, config) {
 	var appSettings = config.hasOwnProperty('appSettings') ? config.appSettings : null;
 	var middleware = config.hasOwnProperty('middleware') ? config.middleware : null;
 	var routeSetterDef = config.hasOwnProperty('routeSetterDef') ? config.routeSetterDef : null;
-	var serverPort = config.hasOwnProperty('serverPort') ? config.serverPort : null;
 	var serverPath = config.hasOwnProperty('serverPath') ? config.serverPath : null;
+	var serverPort = config.hasOwnProperty('serverPort') ? config.serverPort : null;
 
 	var app = mod_express();
 
@@ -102,14 +109,14 @@ var app_base = function(logPrefix, config) {
 
 	// routes
 	if (routeSetterDef) {
-		
+
 		// If path specified, mount routes to there [serverPath]/[routeSetterDef routes]...
 		// (ex serverPath == /api then /api/[routeSetterDef routes]...
 		if (serverPath)
 			app.use((serverPath.charAt(0) != '/' ? '/' : '') + serverPath, routeSetterDef.routes);
 		else
 			app.use(routeSetterDef.routes);
-			
+
 	}
 
 	// catch 404 and forward to error handler
@@ -128,45 +135,60 @@ var app_base = function(logPrefix, config) {
 		next(err);
 
 	});
-	
-	// development error handler
-	// will print stacktrace
-	if (app.get('env') === 'development') {
 
-		// return as json if .json is in URL
-		app.use('/\*.json', function(err, req, res, next) {
+	function isDevEnv() {
 
-			res.json({
-				status: err.status || 500,
-				message: err.message,
-				error: err.stack
-			});
-
-		});
-		
-		// render
-		app.use(function(err, req, res, next) {
-
-			res.render('error', {
-				status: err.status || 500,
-				message: err.message,
-				error: err
-			});
-
-		});
+		return app.get('env') === 'development';
 
 	}
 
-	// production error handler
-	// no stacktraces leaked to user
+	function createErrorReturnObj(error) {
+
+		var errorObj = {
+			status: error.status || 500,
+			message: error.message
+		};
+
+		if (isDevEnv()) {
+
+			// development error handler
+			// will print stacktrace
+			errorObj.error = error;
+
+		} else {
+
+			// production error handler
+			// no stacktraces leaked to user
+			errorObj.error = {
+				status: error.status
+			};
+
+		}
+
+		return errorObj;
+
+	}
+
+	// return as json if .json is in URL
+	app.use('/\*.json', function(err, req, res, next) {
+
+		console.log('.json error');
+
+		var errorObj = createErrorReturnObj(err);
+		if (isDevEnv())
+			errorObj.error = errorObj.error.stack;
+
+		res.json(errorObj);
+
+	});
+
+	// or render
 	app.use(function(err, req, res, next) {
 
+		console.log('render error');
+
 		// res.send(ObjectUtils.convertToErrorObj(err));
-		res.render('error', {
-			status: err.status || 500,
-			message: err.message,
-			error: {}
-		});
+		res.render('error', createErrorReturnObj(err));
 
 	});
 

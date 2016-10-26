@@ -7,6 +7,8 @@ var config = require('./env.json')[AppVars.env];
 //
 // --------------------------------------------------------------------------
 
+var path = require('path');
+
 var app_base = require('./utils/app_base.js');
 var routes = require('./routes/routes_email.js');
 
@@ -29,6 +31,16 @@ logger.log(config);
 // --------------------------------------------------------------------------
 
 var appObj = app_base('app_base, app_email.js:', {
+	appSettings: [
+		{
+			name: 'views',
+			value: path.join(process.cwd(), 'server/utils/views')
+		},
+		{
+			name: 'view engine',
+			value: 'hbs'
+		}
+	],
 	routeSetterDef: routes,
 	serverPort: config.EMAIL.port
 });
