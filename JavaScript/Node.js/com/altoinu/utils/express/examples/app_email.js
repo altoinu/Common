@@ -1,6 +1,8 @@
 var AppVars = require('./appvars.js');
 var config = require('./env.json')[AppVars.env];
 
+var HBS_VIEWS_FOLDER = 'server/utils/views';
+
 // --------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -10,7 +12,11 @@ var config = require('./env.json')[AppVars.env];
 var path = require('path');
 
 var app_base = require('./utils/app_base.js');
-var routes = require('./routes/routes_email.js');
+var RouteSetter = require('./utils/RouteSetter.js');
+
+var routes = RouteSetter([
+	__dirname + '/routes/ElasticEmailRoute.js'
+]);
 
 // --------------------------------------------------------------------------
 //
@@ -34,7 +40,7 @@ var appObj = app_base('app_base, app_email.js:', {
 	appSettings: [
 		{
 			name: 'views',
-			value: path.join(process.cwd(), 'server/utils/views')
+			value: path.join(process.cwd(), HBS_VIEWS_FOLDER)
 		},
 		{
 			name: 'view engine',
