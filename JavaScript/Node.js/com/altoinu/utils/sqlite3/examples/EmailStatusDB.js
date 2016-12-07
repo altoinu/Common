@@ -8,9 +8,8 @@
 
 var mod_Q = require('q');
 
-//var EmailStatusType = require('./EmailStatusType.js');
-var SQLite3DB = require('./SQLite3DB.js');
-var ObjectUtils = require('./ObjectUtils.js');
+var SQLite3DB = require('../SQLite3DB.js');
+var ObjectUtils = require('../ObjectUtils.js');
 
 var LOG_PREFIX = 'SQL email: ';
 
@@ -531,23 +530,25 @@ EmailStatusDB.prototype.constructor = EmailStatusDB;
 EmailStatusDB.TYPE_UNDEFINED = 'undefined';
 
 // email status constants
+EmailStatusDB.STATUS = {};
+
 // Email info presend
-EmailStatusDB.STATUS_PRE_SEND = 'preSend';
+EmailStatusDB.STATUS.PRE_SEND = 'preSend';
 // Email info presend
-EmailStatusDB.STATUS_SEND_ERROR = 'sendError';
+EmailStatusDB.STATUS.SEND_ERROR = 'sendError';
 // Email info submitted
-EmailStatusDB.STATUS_SEND_INITIATED = 'sendInitiated';
+EmailStatusDB.STATUS.SEND_INITIATED = 'sendInitiated';
 // Email info submit failed, email probably didn't go
-EmailStatusDB.STATUS_ERROR_SEND_INITIATE_FAIL = 'ErrorSendInitiateFail';
+EmailStatusDB.STATUS.ERROR_SEND_INITIATE_FAIL = 'ErrorSendInitiateFail';
 // Currently in process of sending
-EmailStatusDB.STATUS_SENDING = 'sending';
+EmailStatusDB.STATUS.SENDING = 'sending';
 // Email failed to be delivered
-EmailStatusDB.STATUS_SEND_FAILED = 'sendFailed';
+EmailStatusDB.STATUS.SEND_FAILED = 'sendFailed';
 // Could not get status of send progress
-EmailStatusDB.STATUS_ERROR_GET_SEND_STATUS_FAIL = 'ErrorGetSendStatusFail';
+EmailStatusDB.STATUS.ERROR_GET_SEND_STATUS_FAIL = 'ErrorGetSendStatusFail';
 // Email sent, but update record failed
-EmailStatusDB.STATUS_ERROR_SENT_BUT_UPDATE_RECORD_FAIL = 'ErrorSentButUpdateRecordFail';
+EmailStatusDB.STATUS.ERROR_SENT_BUT_UPDATE_RECORD_FAIL = 'ErrorSentButUpdateRecordFail';
 // Email failed to be delivered, and also update record failed
-EmailStatusDB.STATUS_ERROR_SEND_FAILED_AND_UPDATE_RECORD_FAIL = 'ErrorSendFailUpdateRecordFail';
+EmailStatusDB.STATUS.ERROR_SEND_FAILED_AND_UPDATE_RECORD_FAIL = 'ErrorSendFailUpdateRecordFail';
 
 module.exports = EmailStatusDB;

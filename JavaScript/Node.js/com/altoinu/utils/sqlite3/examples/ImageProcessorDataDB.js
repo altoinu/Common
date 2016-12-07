@@ -10,9 +10,8 @@
 
 var mod_Q = require('q');
 
-//var EmailStatusType = require('./EmailStatusType.js');
-var SQLite3DB = require('./SQLite3DB.js');
-var ObjectUtils = require('./ObjectUtils.js');
+var SQLite3DB = require('../SQLite3DB.js');
+var ObjectUtils = require('../ObjectUtils.js');
 
 var LOG_PREFIX = 'SQL image: ';
 
@@ -83,8 +82,8 @@ var ImageProcessorDataDB = function(dbFileName, debugLogEnabled) {
 	 * @param id optional, if not specified, then all
 	 * @param path optional
 	 * @param original optional
-	 * @param timestamp1
-	 * @param timestamp2
+	 * @param timestamp1 Date object
+	 * @param timestamp2 Date object
 	 */
 	this.getImageData = function(id, path, original, timestamp1, timestamp2) {
 
