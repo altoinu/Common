@@ -63,6 +63,7 @@ module.exports = (function() {
 
 			// folder exists, return as is
 			return mod_Q.fcall(function() {
+				console.log('Folder exists: ' + resultFolder);
 				return resultFolder;
 			});
 
@@ -74,6 +75,7 @@ module.exports = (function() {
 
 				// but it is in process of being created
 				// so return its promise
+				console.log('Folder create in progress: ' + folder);
 				return _mkdir_ing[folder];
 
 			} else {
@@ -84,7 +86,16 @@ module.exports = (function() {
 				// create parent folder
 				var parentFolder = folder.substring(0, folder.lastIndexOf('/'));
 
-				FileUtils.mkdir(parentFolder).then(function(createdParentFolder) {
+				var makeParentFolder;
+				
+				if (parentFolder.length == 0)
+					// we are at top most
+					makeParentFolder = mod_Q.resolve(parentFolder);
+				else
+					// make parent folder first
+					makeParentFolder = FileUtils.mkdir(parentFolder);
+				
+				makeParentFolder.then(function(createdParentFolder) {
 
 					console.log('Create folder: ' + folder);
 
