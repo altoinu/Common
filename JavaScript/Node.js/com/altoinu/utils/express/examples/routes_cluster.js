@@ -1,8 +1,9 @@
+var path = require('path');
 var RouteSetter = require('./RouteSetter.js');
 
 var routesDef = [
-	'./ConfigRoute.js',
-	'./ImageProcessRoute.js'
+	path.join(__dirname, '/routes/ConfigRoute.js'),
+	path.join(__dirname, '/preview-server/routes/ImageProcessRoute.js')
 ];
 
 module.exports = RouteSetter(routesDef);

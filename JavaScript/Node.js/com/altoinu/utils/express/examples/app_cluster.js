@@ -1,7 +1,12 @@
-var AppVars = require('./appvars.js');
-var config = require('./env.json')[AppVars.env];
+// ======================================================================
+// GLOBAL variables
+// ======================================================================
+GLOBAL.AppVars = require('../BrandConfig/appvars.js');
+var AppVars = GLOBAL.AppVars;
+GLOBAL.config = require('../BrandConfig/env.json')[AppVars.env];
+var CONFIG = GLOBAL.config;
 
-var HBS_VIEWS_FOLDER = 'server/utils/views';
+var HBS_VIEWS_FOLDER = 'local_modules/utils/views';
 
 // --------------------------------------------------------------------------
 //
@@ -14,10 +19,11 @@ var path = require('path');
 var app_base = require('./utils/app_base.js');
 var RouteSetter = require('./utils/RouteSetter.js');
 
-var cors = require('./routes/CORS.js')(config.API.CORS);
+var cors = require('./routes/CORS.js')(CONFIG.API.CORS);
 var routes = RouteSetter([
-	path.join(__dirname, 'routes/ConfigRoute.js'),
-	path.join(__dirname, 'routes/ImageProcessRoute.js')
+	path.join(__dirname, '/routes/ConfigRoute.js'),
+	path.join(__dirname, '/preview-server/routes/ImageProcessRoute.js'),
+	path.join(__dirname, '/preview-server/routes/EmailDebugRoute.js')
 ]);
 
 // --------------------------------------------------------------------------
@@ -30,7 +36,7 @@ var Logger = require('./utils/Logger.js');
 var logger = new Logger();
 logger.prefix = 'app_cluster.js:';
 
-logger.log(config);
+logger.log(CONFIG);
 
 // --------------------------------------------------------------------------
 //
@@ -51,8 +57,8 @@ var appObj = app_base('app_base, app_cluster.js:', {
 	],
 	middleware: cors.allow,
 	routeSetterDef: routes,
-	serverPort: config.API.port_internal,
-	serverPath: config.API.path
+	serverPort: CONFIG.API.port_internal,
+	serverPath: CONFIG.API.path
 });
 
 logger.log('module? module.parent =', (module.parent ? true : false));
@@ -66,21 +72,27 @@ if (module.parent) {
 
 	logger.log('running stand alone');
 
+	// pm2 shutdown stuff
+	var doPM2Shutdown = function() {
+
+		appObj.shutdown().fin(function() {
+
+			// exit
+			process.exit(0);
+
+		}).done();
+
+	};
+
 	process.on('message', function(message) {
 
-		if (message === 'shutdown') {
+		if (message === 'shutdown')
+			doPM2Shutdown();
 
-			// pm2 shutdown stuff
+	});
 
-			appObj.shutdown().fin(function() {
-
-				// exit
-				process.exit(0);
-
-			}).done();
-
-		}
-
+	process.on('SIGINT', function() {
+		doPM2Shutdown();
 	});
 
 }
