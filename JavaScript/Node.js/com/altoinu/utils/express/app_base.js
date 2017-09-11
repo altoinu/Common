@@ -1,6 +1,6 @@
 /**
- * 2016-10-26
- * v1.0.4
+ * 2017-09-11
+ * v1.1
  * 
  * npm modules required:
  * - express
@@ -9,7 +9,7 @@
  * - morgan
  * - q
  */
-var VERSION = '1.0.4';
+var VERSION = '1.1';
 //--------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -34,7 +34,7 @@ var mod_Q = require('q');
  * 
  * @param logPrefix
  * @param config
- *            {appSettings, middleware, routeSetterDef, serverPort, serverPath}
+ *            {appSettings, middleware, routeSetterDef, baseUrl, serverPort}
  */
 var app_base = function(logPrefix, config) {
 
@@ -51,7 +51,7 @@ var app_base = function(logPrefix, config) {
 	var appSettings = config.hasOwnProperty('appSettings') ? config.appSettings : null;
 	var middleware = config.hasOwnProperty('middleware') ? config.middleware : null;
 	var routeSetterDef = config.hasOwnProperty('routeSetterDef') ? config.routeSetterDef : null;
-	var serverPath = config.hasOwnProperty('serverPath') ? config.serverPath : null;
+	var baseUrl = config.hasOwnProperty('baseUrl') ? config.baseUrl : null;
 	var serverPort = config.hasOwnProperty('serverPort') ? config.serverPort : null;
 
 	var app = mod_express();
@@ -110,10 +110,10 @@ var app_base = function(logPrefix, config) {
 	// routes
 	if (routeSetterDef) {
 
-		// If path specified, mount routes to there [serverPath]/[routeSetterDef routes]...
-		// (ex serverPath == /api then /api/[routeSetterDef routes]...
-		if (serverPath)
-			app.use((serverPath.charAt(0) != '/' ? '/' : '') + serverPath, routeSetterDef.routes);
+		// If path specified, mount routes to there [baseUrl]/[routeSetterDef routes]...
+		// (ex baseUrl == /api then /api/[routeSetterDef routes]...
+		if (baseUrl)
+			app.use((baseUrl.charAt(0) != '/' ? '/' : '') + baseUrl, routeSetterDef.routes);
 		else
 			app.use(routeSetterDef.routes);
 
