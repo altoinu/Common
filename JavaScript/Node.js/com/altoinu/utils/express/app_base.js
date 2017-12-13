@@ -1,15 +1,14 @@
 /**
- * 2017-09-11
- * v1.1
+ * 2017-12-13
+ * v1.1.1
  * 
  * npm modules required:
  * - express
- * - body-parser
  * - cookie-parser
  * - morgan
  * - q
  */
-var VERSION = '1.1';
+var VERSION = '1.1.1';
 //--------------------------------------------------------------------------
 //
 // required Node JS modules
@@ -17,7 +16,6 @@ var VERSION = '1.1';
 // --------------------------------------------------------------------------
 
 var mod_express = require('express');
-var mod_bodyParser = require('body-parser');
 var mod_cookieParser = require('cookie-parser');
 var mod_morgan = require('morgan');
 var mod_Q = require('q');
@@ -83,10 +81,6 @@ var app_base = function(logPrefix, config) {
 
 	// default middlewares
 	app.use(mod_morgan('dev'));
-	app.use(mod_bodyParser.json());
-	app.use(mod_bodyParser.urlencoded({
-		extended: true
-	}));
 
 	// add middleware
 	if (middleware) {
