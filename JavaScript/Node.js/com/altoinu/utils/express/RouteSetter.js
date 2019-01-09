@@ -1,6 +1,6 @@
 /**
- * 2017-09-11
- * v1.1
+ * 2019-01-09
+ * v1.1.1
  */
 var Logger = require('../utils/Logger.js');
 var logger = new Logger();
@@ -47,12 +47,12 @@ module.exports = function(routesDef) {
 
 		if (req.query) {
 
-			//logger.log('req.query');
+			// logger.log('req.query');
 			logger.log('req.query', req.query);
 
 		}
-		//logger.log('req.route');
-		//logger.log(req.route);
+		// logger.log('req.route');
+		// logger.log(req.route);
 
 		next();
 
@@ -67,7 +67,12 @@ module.exports = function(routesDef) {
 
 		logger.log(def);
 
-		var r = require(def);
+		var r;
+		if (typeof (def) === 'string')
+			r = require(def);
+		else
+			r = def;
+
 		routesDefObj.push(r);
 
 		if (r.hasOwnProperty('route')) {
