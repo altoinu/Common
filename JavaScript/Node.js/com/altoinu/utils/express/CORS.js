@@ -1,10 +1,19 @@
 /**
+ * 2019/02/22
+ * version 1.0.0
+ * 
  * Usage
  * require('./CORS.js')({
  * 	"origin": [
  * 		"http://localhost",
  * 		"http://localhost:3001",
  * 		"http://www.example.com",...
+ * 	]
+ * });
+ * 
+ * require('./CORS.js')({
+ * 	"origin": [
+ * 		"*"
  * 	]
  * });
  */
@@ -41,14 +50,15 @@ var allow = function(corsDef, req, res, next) {
 
 		// header contains origin for CORS
 
-		if (corsDef.origin.indexOf(req.headers.origin) != -1) {
+		var is_CORS_ALLOW_ORIGIN_WILDCARD = (corsDef.origin.indexOf('*') != -1);
+		if ((corsDef.origin.indexOf(req.headers.origin) != -1) || is_CORS_ALLOW_ORIGIN_WILDCARD) {
 
 			// origin is defined in corsDef, allow cross domain
 
 			// add necessary headers
 
 			logger.log(req.headers.origin);
-			res.header('Access-Control-Allow-Origin', req.headers.origin);
+			res.header('Access-Control-Allow-Origin', is_CORS_ALLOW_ORIGIN_WILDCARD ? '*' : req.headers.origin);
 			// Access-Control-Allow-Credentials true/false
 			// Access-Control-Expose-Headers
 
@@ -79,7 +89,7 @@ var allow = function(corsDef, req, res, next) {
 
 		} else {
 
-			logger.error('CORS error... origin "' + req.headers.origin + '" not specified in env.json');
+			logger.error('CORS error... origin "' + req.headers.origin + '" not specified');
 
 		}
 
